@@ -4,8 +4,13 @@ import csv
 import io
 import json
 import os
+import re
 import secrets
 import sqlite3
+import time
+import unicodedata
+import urllib.parse
+import urllib.request
 from calendar import Calendar
 from datetime import datetime, timedelta
 from functools import wraps
@@ -261,10 +266,122 @@ def admin_required(view):
     return wrapped
 
 
-def get_ranking(db):
-    """Ranking geral: pontos desc, nº de placares exatos desc, nome asc."""
+# ------------------------------------------------------------ placar ao vivo
+# Fonte: API pública (não-oficial) da ESPN. Só informativo/parcial — o
+# resultado oficial continua sendo o que o admin confirma no painel.
+LIVE_URL = ('https://site.api.espn.com/apis/site/v2/sports/soccer/'
+            'fifa.world/scoreboard')
+_live_cache = {'ts': 0.0, 'dados': {}}
+
+
+def fetch_live(db):
+    """{match_id: {'s1','s2','status','state'}} dos jogos em andamento/encerrados
+    na ESPN que ainda não têm resultado confirmado aqui. Cache de 60s."""
+    agora = time.time()
+    if agora - _live_cache['ts'] < 60:
+        return _live_cache['dados']
+    dados = {}
+    try:
+        with urllib.request.urlopen(LIVE_URL, timeout=6) as r:
+            j = json.load(r)
+        pendentes = {frozenset((m['team1'], m['team2'])): m for m in db.execute(
+            'SELECT id, team1, team2 FROM matches '
+            'WHERE score1 IS NULL AND voided = 0').fetchall()}
+        for e in j.get('events', []):
+            comp = e['competitions'][0]
+            comps = comp.get('competitors', [])
+            if len(comps) != 2:
+                continue
+            placar = {c['team'].get('abbreviation'): int(c.get('score') or 0)
+                      for c in comps}
+            m = pendentes.get(frozenset(placar))
+            estado = comp['status']['type'].get('state')  # pre | in | post
+            if m is None or estado == 'pre':
+                continue
+            dados[m['id']] = {
+                's1': placar.get(m['team1'], 0), 's2': placar.get(m['team2'], 0),
+                'status': comp['status']['type'].get('shortDetail', ''),
+                'state': estado,
+            }
+    except Exception:
+        dados = _live_cache['dados']  # falhou: mantém o último conhecido
+    _live_cache.update(ts=agora, dados=dados)
+    return dados
+
+
+@app.route('/api/livescore')
+@login_required
+def api_livescore():
+    return jsonify(fetch_live(get_db()))
+
+
+# ------------------------------------------------------------ CazéTV
+CAZETV_BUSCA = 'https://www.youtube.com/@CazeTV/search?query='
+CAZETV_CANAL = 'https://www.youtube.com/@CazeTV/streams'
+_caze_cache = {}  # frozenset({time1, time2}) -> {'ts': float, 'video': dict|None}
+
+
+def _norm_time(s):
+    """Remove acentos e caixa pra casar nome de time com título de vídeo."""
+    s = unicodedata.normalize('NFD', s)
+    return ''.join(c for c in s if unicodedata.category(c) != 'Mn').upper().strip()
+
+
+def fetch_cazetv_jogo(nome1, nome2):
+    """Busca no canal da CazéTV a transmissão oficial do confronto.
+    O título segue o padrão 'AO VIVO: TIME1 X TIME2 | COPA...'. Cache 10 min."""
+    n1, n2 = _norm_time(nome1), _norm_time(nome2)
+    chave = frozenset((n1, n2))
+    agora = time.time()
+    hit = _caze_cache.get(chave)
+    if hit and agora - hit['ts'] < 600:
+        return hit['video']
+    video = None
+    try:
+        url = CAZETV_BUSCA + urllib.parse.quote(f'{nome1} X {nome2}')
+        req = urllib.request.Request(url, headers={
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36',
+            'Accept-Language': 'pt-BR,pt;q=0.9'})
+        html = urllib.request.urlopen(req, timeout=10).read().decode('utf-8', 'ignore')
+        for ch in html.split('"videoRenderer":')[1:]:
+            ch = ch[:4000]
+            vid = re.search(r'"videoId":"([^"]+)"', ch)
+            tit = re.search(r'"title":\{"runs":\[\{"text":"([^"]+)"', ch)
+            if not (vid and tit):
+                continue
+            cabeca = _norm_time(tit.group(1).split('|')[0])
+            if cabeca in (f'AO VIVO: {n1} X {n2}', f'AO VIVO: {n2} X {n1}'):
+                video = {'vid': vid.group(1), 'titulo': tit.group(1)}
+                break
+    except Exception:
+        video = hit['video'] if hit else None  # falhou: mantém o último conhecido
+    _caze_cache[chave] = {'ts': agora, 'video': video}
+    return video
+
+
+@app.route('/assistir')
+@login_required
+def assistir():
+    db = get_db()
+    hoje = now_iso()[:10]
+    jogos = db.execute('SELECT * FROM matches WHERE kickoff LIKE ? AND voided = 0 '
+                       'ORDER BY kickoff, code', (hoje + '%',)).fetchall()
+    live = fetch_live(db)
+    cards = []
+    for m in jogos:
+        video = fetch_cazetv_jogo(team_nome(m['team1']), team_nome(m['team2']))
+        cards.append({'id': m['id'], 'team1': m['team1'], 'team2': m['team2'],
+                      'kickoff': m['kickoff'], 'score1': m['score1'],
+                      'score2': m['score2'], 'live': live.get(m['id']),
+                      'video': video})
+    return render_template('assistir.html', cards=cards, canal=CAZETV_CANAL)
+
+
+def get_ranking(db, live=None):
+    """Ranking geral: pontos desc, nº de placares exatos desc, nome asc.
+    Com `live`, jogos em andamento contam pontos parciais (não persistidos)."""
     rows = db.execute('''
-        SELECT u.id, u.name, u.paid, p.score1 ps1, p.score2 ps2,
+        SELECT u.id, u.name, u.paid, p.score1 ps1, p.score2 ps2, p.match_id,
                m.score1 rs1, m.score2 rs2, m.voided
         FROM users u
         LEFT JOIN predictions p ON p.user_id = u.id
@@ -283,9 +400,12 @@ def get_ranking(db):
         if r['voided']:
             continue  # jogo anulado: palpite não conta pra nada
         s['palpites'] += 1
-        if r['rs1'] is None:
+        rs1, rs2 = r['rs1'], r['rs2']
+        if rs1 is None and live and r['match_id'] in live:
+            rs1, rs2 = live[r['match_id']]['s1'], live[r['match_id']]['s2']
+        if rs1 is None:
             continue
-        pts = calc_pontos(r['ps1'], r['ps2'], r['rs1'], r['rs2'])
+        pts = calc_pontos(r['ps1'], r['ps2'], rs1, rs2)
         s['pontos'] += pts
         if pts == 3:
             s['exatos'] += 1
@@ -408,6 +528,7 @@ def palpites():
         'SELECT * FROM predictions WHERE user_id = ?',
         (session['user_id'],)).fetchall()}
 
+    live = fetch_live(db)
     grupos = {}      # 'A' -> [match dicts]
     mata_mata = {}   # stage -> [match dicts]
     jogos_hoje = []  # banner de aviso no topo
@@ -419,18 +540,24 @@ def palpites():
         pts = None
         if p and m['score1'] is not None and not m['voided']:
             pts = calc_pontos(p['score1'], p['score2'], m['score1'], m['score2'])
+        lv = live.get(m['id'])
+        pts_live = None
+        if lv and p and m['score1'] is None and not m['voided']:
+            pts_live = calc_pontos(p['score1'], p['score2'], lv['s1'], lv['s2'])
         item = {
             'id': m['id'], 'code': m['code'], 'team1': m['team1'], 'team2': m['team2'],
             'kickoff': m['kickoff'], 'locked': locked, 'voided': m['voided'],
             'score1': m['score1'], 'score2': m['score2'],
             'ps1': p['score1'] if p else None, 'ps2': p['score2'] if p else None,
-            'pontos': pts,
+            'pontos': pts, 'live': lv, 'pts_live': pts_live,
         }
         if m['stage'] == 'grupos':
             grupos.setdefault(m['grp'], []).append(item)
         else:
             mata_mata.setdefault(m['stage'], []).append(item)
         if m['kickoff'][:10] == hoje:
+            item['tv'] = fetch_cazetv_jogo(team_nome(m['team1']),
+                                           team_nome(m['team2']))
             kickoff = datetime.strptime(m['kickoff'], '%Y-%m-%dT%H:%M').replace(tzinfo=TZ)
             trava = (kickoff - LOCK_ANTECEDENCIA).strftime('%H:%M')
             jogos_hoje.append({**item, 'trava': trava})
@@ -598,7 +725,9 @@ def montar_grafico(dias, series, uid_atual):
 @login_required
 def classificacao():
     db = get_db()
-    ranking, apostadores, caixa = get_ranking(db)
+    live = fetch_live(db)
+    ao_vivo = sum(1 for v in live.values() if v['state'] == 'in')
+    ranking, apostadores, caixa = get_ranking(db, live=live)
     premios = [round(caixa * p, 2) for p in PREMIOS]
     jogos_com_resultado = db.execute(
         'SELECT COUNT(*) c FROM matches WHERE score1 IS NOT NULL AND voided = 0'
@@ -615,7 +744,8 @@ def classificacao():
                            apostadores=apostadores, premios=premios,
                            jogos_com_resultado=jogos_com_resultado,
                            minha_pos=minha_pos, grafico=grafico,
-                           caixa_pago=caixa_pago, pagos=pagos, nao_pagos=nao_pagos)
+                           caixa_pago=caixa_pago, pagos=pagos, nao_pagos=nao_pagos,
+                           ao_vivo=ao_vivo)
 
 
 MESES_PT = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
