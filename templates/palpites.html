@@ -3,33 +3,60 @@
 
 {% macro linha_jogo(j) %}
 <div class="match {% if j.locked %}locked{% endif %} {% if j.voided %}voided{% endif %}" id="match-{{ j.id }}"
-     data-id="{{ j.id }}" data-t1="{{ j.team1 }}" data-t2="{{ j.team2 }}" data-kickoff="{{ j.kickoff }}">
-  <span class="when">{{ j.kickoff[8:10] }}/{{ j.kickoff[5:7] }} {{ j.kickoff[11:16] }}{% if not j.locked %}<span class="countdown"></span>{% endif %}</span>
+     data-id="{{ j.id }}" data-t1="{{ j.team1 }}" data-t2="{{ j.team2 }}" data-kickoff="{{ j.kickoff }}"
+     {% if j.score1 is not none and not j.voided %}data-rs1="{{ j.score1 }}" data-rs2="{{ j.score2 }}"{% endif %}
+     {% if j.live %}data-ls1="{{ j.live.s1 }}" data-ls2="{{ j.live.s2 }}"{% endif %}>
+  {# row 1: o palpite #}
+  <span class="when">{{ j.kickoff[8:10] }}/{{ j.kickoff[5:7] }} {{ j.kickoff[11:16] }}</span>
   <span class="team t1">{{ team_label(j.team1) }}</span>
-  <input type="number" min="0" max="99" inputmode="numeric" class="s1"
-         value="{{ j.ps1 if j.ps1 is not none else '' }}" {% if j.locked %}disabled{% endif %}>
-  <span class="x">x</span>
-  <input type="number" min="0" max="99" inputmode="numeric" class="s2"
-         value="{{ j.ps2 if j.ps2 is not none else '' }}" {% if j.locked %}disabled{% endif %}>
+  <span class="placar-linha">
+    <input type="number" min="0" max="99" inputmode="numeric" class="s1"
+           value="{{ j.ps1 if j.ps1 is not none else '' }}" {% if j.locked %}disabled{% endif %}>
+    <span class="x">x</span>
+    <input type="number" min="0" max="99" inputmode="numeric" class="s2"
+           value="{{ j.ps2 if j.ps2 is not none else '' }}" {% if j.locked %}disabled{% endif %}>
+  </span>
   <span class="team t2">{{ team_label(j.team2) }}</span>
   <span class="status">
-    {% if j.voided %}
-      <span class="anulado">🚫 anulado</span>
-    {% elif j.score1 is not none %}
-      <span class="real">resultado {{ j.score1 }}x{{ j.score2 }}</span>
-      {% if j.pontos is not none %}
-        <span class="pts pts{{ j.pontos }}">{{ j.pontos }} pt{{ 's' if j.pontos != 1 }}</span>
-      {% endif %}
-    {% elif j.locked %}
-      <span class="trancado">🔒</span>
+    {%- if j.voided %}<span class="anulado">🚫 anulado</span>
+    {%- elif j.locked and j.score1 is none and not j.live %}<span class="trancado">🔒</span>
+    {%- endif -%}
+  </span>
+  <span class="botoes">
+    <button type="button" class="ver-palpites" title="Ver o último palpite de todos (fonte: auditoria)">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>
+      </svg>
+    </button>
+    {% if j.tv %}
+    <a class="ver-tv" href="https://www.youtube.com/watch?v={{ j.tv.vid }}" target="_blank"
+       rel="noopener" title="Assistir na CazéTV (YouTube)">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="2" y="7" width="20" height="15" rx="2"/><polyline points="17 2 12 7 7 2"/>
+      </svg>
+    </a>
     {% endif %}
   </span>
-  <button type="button" class="ver-palpites" title="Ver o último palpite de todos (fonte: auditoria)">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>
-    </svg>
-  </button>
+  {# row 2: o jogo real — alinhada coluna a coluna com a row 1 #}
+  {% if j.voided %}
+  {% elif j.score1 is not none %}
+    <span class="r2 r2-estado fim-txt">✅ encerrado</span>
+    <span class="r2 r2-placar">{{ j.score1 }}x{{ j.score2 }}</span>
+    {% if j.pontos is not none %}
+    <span class="r2 r2-pontos"><span class="pts pts{{ j.pontos }}">{{ j.pontos }} pt{{ 's' if j.pontos != 1 }}</span></span>
+    {% endif %}
+  {% elif j.live %}
+    <span class="r2 r2-estado live-txt">{% if j.live.state == 'in' %}🔴 AO VIVO{% else %}⏱ aguarda admin{% endif %}</span>
+    <span class="r2 r2-tempo">{% if j.live.state == 'in' %}{{ j.live.status }}{% else %}encerrado{% endif %}</span>
+    <span class="r2 r2-placar live-placar">{{ j.live.s1 }}x{{ j.live.s2 }}</span>
+    {% if j.pts_live is not none %}
+    <span class="r2 r2-pontos"><span class="pts pts{{ j.pts_live }} parcial" title="pontos parciais — admin ainda confirma">{{ j.pts_live }} pt{{ 's' if j.pts_live != 1 }}</span></span>
+    {% endif %}
+  {% elif not j.locked %}
+    <span class="r2 r2-estado countdown"></span>
+  {% endif %}
 </div>
 {% endmacro %}
 
@@ -55,11 +82,14 @@
         <span class="anulado">🚫 anulado</span>
       {% elif j.score1 is not none %}
         <span class="muted">— encerrado ({{ j.score1 }}x{{ j.score2 }})</span>
+      {% elif j.live %}
+        <span class="live-badge">{% if j.live.state == 'in' %}🔴 AO VIVO{% endif %} {{ j.live.s1 }}x{{ j.live.s2 }} <small>{{ j.live.status }}</small></span>
       {% elif j.locked %}
         <span class="trava-fechada">🔒 palpites encerrados</span>
       {% else %}
         <span class="trava-aberta">⏰ palpite até {{ j.trava }}</span>
       {% endif %}
+      {% if j.tv %}· <a href="https://www.youtube.com/watch?v={{ j.tv.vid }}" target="_blank" rel="noopener">assistir ↗</a>{% endif %}
     </li>
   {% endfor %}
   </ul>
@@ -82,10 +112,18 @@ o resultado for confirmado. A tabelinha de cada grupo mostra a classificação
     <div class="matches">
       {% for j in jogos %}{{ linha_jogo(j) }}{% endfor %}
     </div>
-    <table class="standings" data-group="{{ grp }}">
-      <thead><tr><th>#</th><th>Seleção</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th><th>SG</th></tr></thead>
-      <tbody></tbody>
-    </table>
+    <div class="standings-col">
+      <div class="standings-label">🎯 Palpitado</div>
+      <table class="standings" data-group="{{ grp }}" data-modo="palpite">
+        <thead><tr><th>#</th><th>Seleção</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th><th>SG</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <div class="standings-label">📡 Resultados reais</div>
+      <table class="standings" data-group="{{ grp }}" data-modo="real">
+        <thead><tr><th>#</th><th>Seleção</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th><th>SG</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </div>
 </section>
 {% endfor %}
@@ -120,14 +158,24 @@ o resultado for confirmado. A tabelinha de cada grupo mostra a classificação
 <script>
 const TEAMS = {{ TEAMS|tojson }};
 
-function calcularTabela(grupo) {
+// modo 'palpite' lê os inputs do usuário; modo 'real' lê resultado
+// confirmado (data-rs) ou placar ao vivo (data-ls)
+function calcularTabela(tabela) {
+  const grupo = tabela.dataset.group, modo = tabela.dataset.modo;
   const sec = document.getElementById('grupo-' + grupo);
   const stats = {};
   sec.querySelectorAll('.match').forEach(m => {
     for (const c of [m.dataset.t1, m.dataset.t2]) {
       if (!stats[c]) stats[c] = {c, pts: 0, j: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0};
     }
-    const s1 = m.querySelector('.s1').value, s2 = m.querySelector('.s2').value;
+    let s1, s2;
+    if (modo === 'real') {
+      s1 = m.dataset.rs1 ?? m.dataset.ls1 ?? '';
+      s2 = m.dataset.rs2 ?? m.dataset.ls2 ?? '';
+    } else {
+      s1 = m.querySelector('.s1').value;
+      s2 = m.querySelector('.s2').value;
+    }
     if (s1 === '' || s2 === '') return;
     const a = stats[m.dataset.t1], b = stats[m.dataset.t2];
     const g1 = +s1, g2 = +s2;
@@ -139,7 +187,7 @@ function calcularTabela(grupo) {
   const ordem = Object.values(stats).sort((x, y) =>
     y.pts - x.pts || (y.gp - y.gc) - (x.gp - x.gc) || y.gp - x.gp ||
     TEAMS[x.c].nome.localeCompare(TEAMS[y.c].nome));
-  const tbody = sec.querySelector('.standings tbody');
+  const tbody = tabela.querySelector('tbody');
   tbody.innerHTML = ordem.map((s, i) => `
     <tr class="${i < 2 ? 'classif' : ''}">
       <td>${i + 1}º</td>
@@ -192,7 +240,10 @@ document.querySelectorAll('.match:not(.locked) input').forEach(inp => {
   inp.addEventListener('input', () => {
     const m = inp.closest('.match');
     const grupo = m.closest('.group');
-    if (grupo) calcularTabela(grupo.id.replace('grupo-', ''));
+    if (grupo) {
+      const g = grupo.id.replace('grupo-', '');
+      calcularTabela(document.querySelector(`.standings[data-group="${g}"][data-modo="palpite"]`));
+    }
     clearTimeout(timers.get(m));
     timers.set(m, setTimeout(() => {
       const s1 = m.querySelector('.s1').value, s2 = m.querySelector('.s2').value;
@@ -207,7 +258,7 @@ document.querySelectorAll('.match:not(.locked) input').forEach(inp => {
   });
 });
 
-document.querySelectorAll('.standings').forEach(t => calcularTabela(t.dataset.group));
+document.querySelectorAll('.standings').forEach(t => calcularTabela(t));
 
 // popup com o último palpite de todos os usuários, lido da auditoria
 const modal = document.getElementById('modal-palpites');
@@ -282,23 +333,74 @@ const LOCK_MS = {{ LOCK_MIN * 60000 }};
 function tickCountdown() {
   const agora = Date.now();
   document.querySelectorAll('.match:not(.locked)[data-kickoff]').forEach(m => {
-    const el = m.querySelector('.countdown');
+    const el = m.querySelector('.r2-estado.countdown');
     if (!el) return;
     const resta = new Date(m.dataset.kickoff).getTime() - LOCK_MS - agora;
     if (resta <= 0) {
       m.classList.add('locked');
       m.querySelectorAll('input').forEach(i => i.disabled = true);
-      el.textContent = '🔒';
+      el.remove();
+      const st = m.querySelector('.status');
+      if (!st.querySelector('.trancado')) st.innerHTML = '<span class="trancado">🔒</span>';
       atualizaPendentes();
       return;
     }
     if (resta > 24 * 3600000) { el.textContent = ''; return; }
     const tm = Math.ceil(resta / 60000), h = Math.floor(tm / 60), min = tm % 60;
-    el.textContent = '⏳ ' + (h ? `${h}h${String(min).padStart(2, '0')}` : `${min}min`);
-    el.title = 'palpite trava em ' + (h ? `${h}h${String(min).padStart(2, '0')}min` : `${min} minutos`);
+    el.textContent = '⏳ trava em ' + (h ? `${h}h${String(min).padStart(2, '0')}` : `${min}min`);
   });
 }
 tickCountdown();
 setInterval(tickCountdown, 30000);
+
+// placar ao vivo: atualiza a row 2 de cada jogo a cada 60s, sem recarregar.
+// mesma regra de pontos do servidor: exato = 3, vencedor/empate = 1, senão 0
+function calcPontos(ps1, ps2, rs1, rs2) {
+  if (ps1 === rs1 && ps2 === rs2) return 3;
+  if (Math.sign(ps1 - ps2) === Math.sign(rs1 - rs2)) return 1;
+  return 0;
+}
+
+function setR2(m, cls, html) {
+  let el = m.querySelector('.' + cls);
+  if (!el) {
+    el = document.createElement('span');
+    el.className = 'r2 ' + cls;
+    m.appendChild(el);
+  }
+  el.innerHTML = html;
+  return el;
+}
+
+async function atualizaLive() {
+  try {
+    const r = await fetch('/api/livescore');
+    const live = await r.json();
+    for (const [id, lv] of Object.entries(live)) {
+      const m = document.querySelector(`.match[data-id="${id}"]`);
+      if (!m || m.dataset.rs1 !== undefined) continue;  // admin já confirmou
+      m.dataset.ls1 = lv.s1;
+      m.dataset.ls2 = lv.s2;
+      const cd = m.querySelector('.r2-estado.countdown');
+      if (cd) cd.remove();
+      const cadeado = m.querySelector('.status .trancado');
+      if (cadeado) cadeado.remove();
+      const aoVivo = lv.state === 'in';
+      setR2(m, 'r2-estado', aoVivo ? '🔴 AO VIVO' : '⏱ aguarda admin')
+        .className = 'r2 r2-estado ' + (aoVivo ? 'live-txt' : 'fim-txt');
+      setR2(m, 'r2-tempo', aoVivo ? esc(lv.status) : 'encerrado');
+      setR2(m, 'r2-placar', `${lv.s1}x${lv.s2}`).classList.add('live-placar');
+      const ps1 = m.querySelector('.s1').value, ps2 = m.querySelector('.s2').value;
+      if (ps1 !== '' && ps2 !== '') {
+        const pts = calcPontos(+ps1, +ps2, lv.s1, lv.s2);
+        setR2(m, 'r2-pontos',
+          `<span class="pts pts${pts} parcial" title="pontos parciais — admin ainda confirma">${pts} pt${pts === 1 ? '' : 's'}</span>`);
+      }
+    }
+    // tabela de resultados reais acompanha o placar ao vivo
+    document.querySelectorAll('.standings[data-modo="real"]').forEach(t => calcularTabela(t));
+  } catch {}
+}
+setInterval(atualizaLive, 60000);
 </script>
 {% endblock %}

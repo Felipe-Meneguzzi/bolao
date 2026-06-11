@@ -12,6 +12,13 @@
   <div class="card stat"><span class="big">{% if minha_pos %}{{ minha_pos }}º{% else %}—{% endif %}</span>Sua posição{% if not minha_pos %}<br><small>faça um palpite para entrar</small>{% endif %}</div>
 </div>
 
+{% if ao_vivo %}
+<div class="aviso-live">🔴 <strong>{{ ao_vivo }} jogo{{ 's' if ao_vivo != 1 }} ao vivo</strong>
+— a pontuação abaixo é parcial e atualiza sozinha; o resultado oficial é
+confirmado pelo admin ao final. <span class="muted">(placar via ESPN)</span></div>
+<script>setTimeout(() => location.reload(), 90000);</script>
+{% endif %}
+
 <p class="muted">Pontuação calculada sobre {{ jogos_com_resultado }} jogo{{ 's' if jogos_com_resultado != 1 }} com resultado lançado.
 Placar exato = 3 pts · acertou só o resultado (vencedor/empate) = 1 pt · errou = 0.
 <strong>Desempate: quem tiver mais placares exatos 🎯 fica na frente.</strong></p>
