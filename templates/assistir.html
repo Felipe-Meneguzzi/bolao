@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Assistir ao vivo — Bolão Copa 2026{% endblock %}
+{% block content %}
+<h1>📺 Assistir ao vivo</h1>
+<p class="muted">Links das transmissões da <a href="{{ canal }}" target="_blank" rel="noopener">CazéTV</a>
+(YouTube, grátis) dos jogos de hoje — abrem direto no YouTube.</p>
+
+{% for c in cards %}
+<section class="card jogo-tv">
+  <div class="jogo-tv-head">
+    <h2>{{ team_label(c.team1) }} <span class="x">x</span> {{ team_label(c.team2) }}</h2>
+    <span class="muted">{{ c.kickoff[11:16] }}
+      {% if c.score1 is not none %} · encerrado {{ c.score1 }}x{{ c.score2 }}
+      {% elif c.live and c.live.state == 'in' %} · <span class="live-txt">🔴 AO VIVO {{ c.live.s1 }}x{{ c.live.s2 }} ({{ c.live.status }})</span>
+      {% elif c.live %} · ⏱ {{ c.live.s1 }}x{{ c.live.s2 }} (aguarda admin)
+      {% endif %}
+    </span>
+  </div>
+  {% if c.video %}
+  <p>
+    <a class="btn-tv" href="https://www.youtube.com/watch?v={{ c.video.vid }}"
+       target="_blank" rel="noopener">▶ Assistir na CazéTV (YouTube)</a>
+  </p>
+  <p class="muted video-titulo">{{ c.video.titulo }}</p>
+  {% else %}
+  <p class="muted">Transmissão não encontrada no canal —
+  <a href="{{ canal }}" target="_blank" rel="noopener">procurar na CazéTV</a>.</p>
+  {% endif %}
+</section>
+{% else %}
+<div class="card">
+  <p class="muted">Sem jogos hoje. Confira o <a href="{{ url_for('calendario') }}">calendário</a>
+  ou as <a href="{{ canal }}" target="_blank" rel="noopener">transmissões da CazéTV</a>.</p>
+</div>
+{% endfor %}
+
+<p class="muted">As transmissões são do canal CazéTV no YouTube — o bolão só organiza os links.</p>
+{% endblock %}
