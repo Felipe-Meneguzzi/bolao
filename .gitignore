@@ -1,0 +1,17 @@
+# ambiente python (recriar com: python3 -m venv venv && pip install -r requirements.txt)
+venv/
+__pycache__/
+*.pyc
+
+# dados de runtime — NUNCA commitar (banco com hashes de senha e chave de sessão)
+data/bolao.db
+data/secret_key
+
+# logs
+bolao.log
+*.log
+
+# lixo do windows/wsl
+*Zone.Identifier
+Thumbs.db
+.DS_Store
