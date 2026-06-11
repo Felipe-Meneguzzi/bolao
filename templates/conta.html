@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Minha conta — Bolão Copa 2026{% endblock %}
+{% block content %}
+<h1>Minha conta</h1>
+<p class="muted">Login: <strong>{{ u.username }}</strong>{% if u.is_admin %} (admin){% endif %}
+— criado em {{ u.created_at[8:10] }}/{{ u.created_at[5:7] }}/{{ u.created_at[:4] }}</p>
+
+<div class="card">
+  <h2>✏️ Nome de exibição</h2>
+  <p class="muted">É o nome que aparece no placar geral, nos palpites e na auditoria.
+  A alteração fica registrada na auditoria.</p>
+  <form method="post" class="inline-form">
+    <input type="hidden" name="acao" value="nome">
+    <input type="text" name="name" value="{{ u.name }}" maxlength="60" required>
+    <button type="submit">Salvar nome</button>
+  </form>
+</div>
+
+<div class="card">
+  <h2>🔑 Alterar senha</h2>
+  <form method="post" class="form-senha">
+    <input type="hidden" name="acao" value="senha">
+    <label>Senha atual
+      <input type="password" name="senha_atual" required autocomplete="current-password"></label>
+    <label>Nova senha
+      <input type="password" name="senha_nova" required minlength="4" autocomplete="new-password"></label>
+    <label>Confirmar nova senha
+      <input type="password" name="senha_conf" required minlength="4" autocomplete="new-password"></label>
+    <button type="submit">Alterar senha</button>
+  </form>
+</div>
+{% endblock %}

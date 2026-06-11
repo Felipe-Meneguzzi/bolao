@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Entrar — Bolão Copa 2026{% endblock %}
+{% block content %}
+<div class="card auth">
+  <h1>🏆 Bolão Copa 2026</h1>
+  <p class="muted">Entre para fazer seus palpites.</p>
+  <form method="post">
+    <label>Usuário <input name="username" required autofocus autocomplete="username"></label>
+    <label>Senha <input name="password" type="password" required autocomplete="current-password"></label>
+    <button type="submit">Entrar</button>
+  </form>
+  <p class="muted">Ainda não tem conta? <a href="{{ url_for('register') }}">Cadastre-se</a></p>
+</div>
+{% endblock %}

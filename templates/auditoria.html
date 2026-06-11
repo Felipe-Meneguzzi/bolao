@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block title %}Auditoria — Bolão Copa 2026{% endblock %}
+{% block content %}
+<h1>Auditoria</h1>
+<p class="muted">Registro de tudo que acontece no bolão, com data e hora — visível para
+todos os participantes.</p>
+
+<form method="get" class="card filtro-auditoria">
+  <label>Usuário
+    <select name="usuario">
+      <option value="">todos</option>
+      {% for u in usuarios %}
+      <option value="{{ u }}" {% if filtros.usuario == u %}selected{% endif %}>{{ u }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Jogo
+    <select name="jogo">
+      <option value="">todos</option>
+      {% for j in jogos %}
+      <option value="{{ j }}" {% if filtros.jogo == j %}selected{% endif %}>{{ j }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Evento
+    <select name="evento">
+      <option value="">todos</option>
+      {% for k, v in ACOES.items() %}
+      <option value="{{ k }}" {% if filtros.evento == k %}selected{% endif %}>{{ v }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>De <input type="date" name="de" value="{{ filtros.de }}"></label>
+  <label>Até <input type="date" name="ate" value="{{ filtros.ate }}"></label>
+  <button type="submit">Filtrar</button>
+  {% if tem_filtro %}<a class="limpar-filtro" href="{{ url_for('auditoria') }}">✕ limpar</a>{% endif %}
+</form>
+
+<div class="card">
+  <p class="export-link"><a href="{{ url_for('export_auditoria') }}{% if tem_filtro %}?{{ request.query_string.decode() }}{% endif %}">⬇️ Exportar CSV{% if tem_filtro %} (com os filtros atuais){% else %} (completo){% endif %}</a></p>
+  <table class="audit">
+    <thead><tr><th>Quando</th><th>Quem</th><th>Evento</th><th>Jogo</th><th>Detalhe</th></tr></thead>
+    <tbody>
+    {% for e in entries %}
+      <tr>
+        <td class="nowrap">{{ e.ts[8:10] }}/{{ e.ts[5:7] }} {{ e.ts[11:19] }}</td>
+        <td>{{ e.user or '—' }}</td>
+        <td class="nowrap">{{ ACOES.get(e.action, e.action) }}</td>
+        <td>{% if e.code %}<a href="{{ url_for('auditoria', jogo=e.code) }}">{{ e.code }}</a>{% else %}—{% endif %}</td>
+        <td>
+          {{ e.texto }}
+          {% if e.palpites is not none %}
+          <details>
+            <summary>{{ e.palpites|length }} palpite{{ 's' if e.palpites|length != 1 }} registrado{{ 's' if e.palpites|length != 1 }} neste momento</summary>
+            {% if e.palpites %}
+            <table class="snap">
+              <thead><tr><th>{{ e.col1 }}</th><th>Palpite</th><th>Feito em</th></tr></thead>
+              <tbody>
+              {% for p in e.palpites %}
+                <tr><td>{{ p.user }}</td><td>{{ p.palpite }}</td>
+                    <td class="nowrap">{{ p.em[8:10] }}/{{ p.em[5:7] }} {{ p.em[11:19] }}</td></tr>
+              {% endfor %}
+              </tbody>
+            </table>
+            {% else %}
+            <p class="muted">Nenhum palpite registrado.</p>
+            {% endif %}
+          </details>
+          {% endif %}
+        </td>
+      </tr>
+    {% else %}
+      <tr><td colspan="5" class="muted">{% if tem_filtro %}Nenhum evento com esses filtros.{% else %}Nenhum evento registrado ainda.{% endif %}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

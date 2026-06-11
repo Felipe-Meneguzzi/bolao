@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}{{ u.name }} — Bolão Copa 2026{% endblock %}
+{% block content %}
+<h1>{{ u.name }}</h1>
+<p class="muted">Login: <strong>{{ u.username }}</strong>{% if u.is_admin %} (admin){% endif %}
+· no bolão desde {{ u.created_at[8:10] }}/{{ u.created_at[5:7] }}/{{ u.created_at[:4] }}
+· {% if u.paid %}<span class="badge-pago">✅ pago</span>{% else %}<span class="badge-pendente">⏳ pagamento pendente</span>{% endif %}
+· <a href="{{ url_for('classificacao') }}">← voltar ao placar</a></p>
+
+{% if stats %}
+<div class="cards-row">
+  <div class="card stat"><span class="big">{% if pos %}{{ pos }}º{% else %}—{% endif %}</span>Posição</div>
+  <div class="card stat"><span class="big">{{ stats.pontos }}</span>Pontos</div>
+  <div class="card stat"><span class="big">🎯 {{ stats.exatos }}</span>Placares exatos</div>
+  <div class="card stat"><span class="big">{{ stats.vencedores }}</span>Só o resultado</div>
+  <div class="card stat"><span class="big">{{ stats.erros }}</span>Erros</div>
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>Palpites ({{ palpites|length }})</h2>
+  {% if palpites %}
+  <table class="perfil-palpites">
+    <thead><tr><th>Jogo</th><th>Data</th><th>Confronto</th><th>Palpite</th><th>Resultado</th><th>Pts</th></tr></thead>
+    <tbody>
+    {% for p in palpites %}
+      <tr>
+        <td>{{ p.code }}</td>
+        <td class="nowrap">{{ p.kickoff[8:10] }}/{{ p.kickoff[5:7] }} {{ p.kickoff[11:16] }}</td>
+        <td>{{ team_label(p.team1) }} x {{ team_label(p.team2) }}</td>
+        <td><strong>{{ p.ps1 }}x{{ p.ps2 }}</strong></td>
+        <td>
+          {% if p.voided %}<span class="anulado">🚫 anulado</span>
+          {% elif p.rs1 is not none %}{{ p.rs1 }}x{{ p.rs2 }}
+          {% else %}<span class="muted">—</span>{% endif %}
+        </td>
+        <td>
+          {% if p.pts is not none %}
+          <span class="pts pts{{ p.pts }}">{{ p.pts }} pt{{ 's' if p.pts != 1 }}</span>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">Nenhum palpite ainda.</p>
+  {% endif %}
+</div>
+{% endblock %}

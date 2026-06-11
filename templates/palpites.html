@@ -1,0 +1,304 @@
+{% extends 'base.html' %}
+{% block title %}Palpites — Bolão Copa 2026{% endblock %}
+
+{% macro linha_jogo(j) %}
+<div class="match {% if j.locked %}locked{% endif %} {% if j.voided %}voided{% endif %}" id="match-{{ j.id }}"
+     data-id="{{ j.id }}" data-t1="{{ j.team1 }}" data-t2="{{ j.team2 }}" data-kickoff="{{ j.kickoff }}">
+  <span class="when">{{ j.kickoff[8:10] }}/{{ j.kickoff[5:7] }} {{ j.kickoff[11:16] }}{% if not j.locked %}<span class="countdown"></span>{% endif %}</span>
+  <span class="team t1">{{ team_label(j.team1) }}</span>
+  <input type="number" min="0" max="99" inputmode="numeric" class="s1"
+         value="{{ j.ps1 if j.ps1 is not none else '' }}" {% if j.locked %}disabled{% endif %}>
+  <span class="x">x</span>
+  <input type="number" min="0" max="99" inputmode="numeric" class="s2"
+         value="{{ j.ps2 if j.ps2 is not none else '' }}" {% if j.locked %}disabled{% endif %}>
+  <span class="team t2">{{ team_label(j.team2) }}</span>
+  <span class="status">
+    {% if j.voided %}
+      <span class="anulado">🚫 anulado</span>
+    {% elif j.score1 is not none %}
+      <span class="real">resultado {{ j.score1 }}x{{ j.score2 }}</span>
+      {% if j.pontos is not none %}
+        <span class="pts pts{{ j.pontos }}">{{ j.pontos }} pt{{ 's' if j.pontos != 1 }}</span>
+      {% endif %}
+    {% elif j.locked %}
+      <span class="trancado">🔒</span>
+    {% endif %}
+  </span>
+  <button type="button" class="ver-palpites" title="Ver o último palpite de todos (fonte: auditoria)">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>
+    </svg>
+  </button>
+</div>
+{% endmacro %}
+
+{% block content %}
+<h1>Meus palpites</h1>
+
+{% if pendentes %}
+<div class="aviso-pendentes" id="aviso-pendentes">
+  ⚠️ Palpites pendentes: <strong class="num-pendentes">{{ pendentes }}</strong>
+  <button type="button" id="btn-proximo">ir ao próximo →</button>
+</div>
+{% endif %}
+
+{% if jogos_hoje %}
+<div class="aviso-hoje">
+  <strong>⚽ Jogos hoje</strong> — palpites travam {{ LOCK_MIN }} min antes (clique para ir ao jogo):
+  <ul>
+  {% for j in jogos_hoje %}
+    <li>
+      <a class="link-jogo" href="#match-{{ j.id }}">{{ team_label(j.team1) }}
+      <strong>x</strong> {{ team_label(j.team2) }} às {{ j.kickoff[11:16] }}</a>
+      {% if j.voided %}
+        <span class="anulado">🚫 anulado</span>
+      {% elif j.score1 is not none %}
+        <span class="muted">— encerrado ({{ j.score1 }}x{{ j.score2 }})</span>
+      {% elif j.locked %}
+        <span class="trava-fechada">🔒 palpites encerrados</span>
+      {% else %}
+        <span class="trava-aberta">⏰ palpite até {{ j.trava }}</span>
+      {% endif %}
+    </li>
+  {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<nav class="grupos-nav">
+  {% for grp, _ in grupos %}<a href="#grupo-{{ grp }}">{{ grp }}</a>{% endfor %}
+  <a href="#mata-mata">Mata-mata</a>
+</nav>
+<p class="muted">Preencha o placar dos jogos — salva automaticamente. Cada palpite trava
+<strong>{{ LOCK_MIN }} minutos antes do jogo</strong> (horário de Brasília) ou assim que
+o resultado for confirmado. A tabelinha de cada grupo mostra a classificação
+<strong>segundo os seus palpites</strong>, igual ao simulador.</p>
+
+{% for grp, jogos in grupos %}
+<section class="card group" id="grupo-{{ grp }}">
+  <h2>Grupo {{ grp }}</h2>
+  <div class="group-body">
+    <div class="matches">
+      {% for j in jogos %}{{ linha_jogo(j) }}{% endfor %}
+    </div>
+    <table class="standings" data-group="{{ grp }}">
+      <thead><tr><th>#</th><th>Seleção</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th><th>SG</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</section>
+{% endfor %}
+
+<section class="card" id="mata-mata">
+  <h2>Mata-mata</h2>
+  {% if mata_mata %}
+    {% for stage, jogos in mata_mata.items() %}
+      <h3>{{ ESTAGIOS[stage] }}</h3>
+      <div class="matches">
+        {% for j in jogos %}{{ linha_jogo(j) }}{% endfor %}
+      </div>
+    {% endfor %}
+  {% else %}
+    <p class="muted">Os confrontos do mata-mata aparecem aqui assim que forem definidos
+    pela classificação real dos grupos. Você receberá novos jogos para palpitar a cada fase.</p>
+  {% endif %}
+</section>
+
+<div id="modal-palpites" hidden>
+  <div class="modal-box">
+    <div class="modal-head">
+      <strong id="mp-titulo"></strong>
+      <button type="button" id="mp-fechar">✕</button>
+    </div>
+    <p class="muted mp-fonte">Fonte: log de auditoria — último palpite registrado de cada
+    participante (não reflete edições manuais no banco).</p>
+    <div id="mp-corpo"></div>
+  </div>
+</div>
+
+<script>
+const TEAMS = {{ TEAMS|tojson }};
+
+function calcularTabela(grupo) {
+  const sec = document.getElementById('grupo-' + grupo);
+  const stats = {};
+  sec.querySelectorAll('.match').forEach(m => {
+    for (const c of [m.dataset.t1, m.dataset.t2]) {
+      if (!stats[c]) stats[c] = {c, pts: 0, j: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0};
+    }
+    const s1 = m.querySelector('.s1').value, s2 = m.querySelector('.s2').value;
+    if (s1 === '' || s2 === '') return;
+    const a = stats[m.dataset.t1], b = stats[m.dataset.t2];
+    const g1 = +s1, g2 = +s2;
+    a.j++; b.j++; a.gp += g1; a.gc += g2; b.gp += g2; b.gc += g1;
+    if (g1 > g2)      { a.v++; b.d++; a.pts += 3; }
+    else if (g1 < g2) { b.v++; a.d++; b.pts += 3; }
+    else              { a.e++; b.e++; a.pts++; b.pts++; }
+  });
+  const ordem = Object.values(stats).sort((x, y) =>
+    y.pts - x.pts || (y.gp - y.gc) - (x.gp - x.gc) || y.gp - x.gp ||
+    TEAMS[x.c].nome.localeCompare(TEAMS[y.c].nome));
+  const tbody = sec.querySelector('.standings tbody');
+  tbody.innerHTML = ordem.map((s, i) => `
+    <tr class="${i < 2 ? 'classif' : ''}">
+      <td>${i + 1}º</td>
+      <td><img class="flag" src="/static/flags/${s.c}.png" alt="" width="20" height="14" onerror="this.remove()">${TEAMS[s.c].nome}</td>
+      <td><strong>${s.pts}</strong></td><td>${s.j}</td><td>${s.v}</td>
+      <td>${s.e}</td><td>${s.d}</td><td>${s.gp - s.gc}</td>
+    </tr>`).join('');
+}
+
+async function salvar(matchEl) {
+  const s1 = matchEl.querySelector('.s1').value, s2 = matchEl.querySelector('.s2').value;
+  const status = matchEl.querySelector('.status');
+  if (s1 === '' || s2 === '') return;
+  status.textContent = '…';
+  try {
+    const r = await fetch('/api/palpite', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({match_id: +matchEl.dataset.id, score1: +s1, score2: +s2}),
+    });
+    const d = await r.json();
+    status.textContent = d.ok ? '✓ salvo' : '✗ ' + (d.erro || 'erro');
+    status.className = 'status ' + (d.ok ? 'ok' : 'erro');
+    if (d.ok) {
+      atualizaPendentes();
+      setTimeout(() => {
+        if (status.textContent === '✓ salvo') status.textContent = '';
+      }, 3000);
+    }
+  } catch {
+    status.textContent = '✗ sem conexão';
+    status.className = 'status erro';
+  }
+}
+
+function atualizaPendentes() {
+  const aviso = document.getElementById('aviso-pendentes');
+  if (!aviso) return;
+  const n = [...document.querySelectorAll('.match:not(.locked)')].filter(m =>
+    m.querySelector('.s1').value === '' || m.querySelector('.s2').value === '').length;
+  if (n === 0) { aviso.remove(); return; }
+  aviso.querySelector('.num-pendentes').textContent = n;
+}
+
+// debounce: salva (e audita) só depois que o usuário parar de digitar,
+// senão cada tecla/clique no spinner viraria um evento de auditoria
+const DEBOUNCE_MS = 800;
+const timers = new Map();
+document.querySelectorAll('.match:not(.locked) input').forEach(inp => {
+  inp.addEventListener('input', () => {
+    const m = inp.closest('.match');
+    const grupo = m.closest('.group');
+    if (grupo) calcularTabela(grupo.id.replace('grupo-', ''));
+    clearTimeout(timers.get(m));
+    timers.set(m, setTimeout(() => {
+      const s1 = m.querySelector('.s1').value, s2 = m.querySelector('.s2').value;
+      if ((s1 === '') !== (s2 === '')) {  // só um campo preenchido
+        const status = m.querySelector('.status');
+        status.textContent = 'preencha os dois placares';
+        status.className = 'status dica';
+        return;
+      }
+      salvar(m);
+    }, DEBOUNCE_MS));
+  });
+});
+
+document.querySelectorAll('.standings').forEach(t => calcularTabela(t.dataset.group));
+
+// popup com o último palpite de todos os usuários, lido da auditoria
+const modal = document.getElementById('modal-palpites');
+const esc = s => String(s ?? '').replace(/[&<>"']/g,
+  c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtTs = t => t ? `${t.slice(8,10)}/${t.slice(5,7)} ${t.slice(11,19)}` : '';
+
+document.querySelectorAll('.ver-palpites').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const m = btn.closest('.match');
+    document.getElementById('mp-titulo').textContent =
+      `${TEAMS[m.dataset.t1].nome} x ${TEAMS[m.dataset.t2].nome}`;
+    const corpo = document.getElementById('mp-corpo');
+    corpo.innerHTML = '<p class="muted">carregando…</p>';
+    modal.hidden = false;
+    try {
+      const r = await fetch('/api/palpites-jogo/' + m.dataset.id);
+      const d = await r.json();
+      if (!d.palpites.length) {
+        corpo.innerHTML = '<p class="muted">Nenhum palpite registrado na auditoria.</p>';
+        return;
+      }
+      let extra = '';
+      if (d.dist && d.dist.total) {  // distribuição — só vem após o travamento
+        const t = d.dist, pct = n => Math.round(n * 100 / t.total);
+        const n1 = esc(TEAMS[m.dataset.t1].nome), n2 = esc(TEAMS[m.dataset.t2].nome);
+        extra = `<div class="dist">
+          <div class="dist-bar">
+            <span class="d1" style="width:${pct(t.v1)}%"></span><span class="de" style="width:${pct(t.empate)}%"></span><span class="d2" style="width:${pct(t.v2)}%"></span>
+          </div>
+          <div class="dist-leg">
+            <span><span class="leg-cor d1"></span>${n1} vence: <strong>${t.v1}</strong> (${pct(t.v1)}%)</span>
+            <span><span class="leg-cor de"></span>empate: <strong>${t.empate}</strong> (${pct(t.empate)}%)</span>
+            <span><span class="leg-cor d2"></span>${n2} vence: <strong>${t.v2}</strong> (${pct(t.v2)}%)</span>
+          </div>
+          <div class="muted dist-top">placar mais apostado: ${t.top.map(p => `<strong>${esc(p.placar)}</strong> (${p.n}×)`).join(' · ')}</div>
+        </div>`;
+      }
+      corpo.innerHTML = extra
+        + '<table><thead><tr><th>Participante</th><th>Palpite</th><th>Registrado em</th></tr></thead><tbody>'
+        + d.palpites.map(p => `<tr><td>${esc(p.user)}</td><td><strong>${esc(p.palpite)}</strong></td><td>${fmtTs(p.em)}</td></tr>`).join('')
+        + '</tbody></table>';
+    } catch {
+      corpo.innerHTML = '<p class="muted">Erro ao carregar — tenta de novo.</p>';
+    }
+  });
+});
+modal.addEventListener('click', e => {
+  if (e.target === modal || e.target.id === 'mp-fechar') modal.hidden = true;
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') modal.hidden = true; });
+
+// botão "ir ao próximo" palpite pendente (cicla pelos jogos abertos sem palpite)
+const btnProx = document.getElementById('btn-proximo');
+if (btnProx) {
+  let ultimo = null;
+  btnProx.addEventListener('click', () => {
+    const vazios = [...document.querySelectorAll('.match:not(.locked)')].filter(m =>
+      m.querySelector('.s1').value === '' || m.querySelector('.s2').value === '');
+    if (!vazios.length) return;
+    const i = (vazios.indexOf(ultimo) + 1) % vazios.length;
+    ultimo = vazios[i];
+    ultimo.scrollIntoView({behavior: 'smooth', block: 'center'});
+    ultimo.classList.add('realce');
+    setTimeout(() => ultimo.classList.remove('realce'), 2000);
+  });
+}
+
+// countdown "trava em ..." nos jogos abertos das próximas 24h;
+// ao zerar, trava os inputs na hora, sem precisar recarregar
+const LOCK_MS = {{ LOCK_MIN * 60000 }};
+function tickCountdown() {
+  const agora = Date.now();
+  document.querySelectorAll('.match:not(.locked)[data-kickoff]').forEach(m => {
+    const el = m.querySelector('.countdown');
+    if (!el) return;
+    const resta = new Date(m.dataset.kickoff).getTime() - LOCK_MS - agora;
+    if (resta <= 0) {
+      m.classList.add('locked');
+      m.querySelectorAll('input').forEach(i => i.disabled = true);
+      el.textContent = '🔒';
+      atualizaPendentes();
+      return;
+    }
+    if (resta > 24 * 3600000) { el.textContent = ''; return; }
+    const tm = Math.ceil(resta / 60000), h = Math.floor(tm / 60), min = tm % 60;
+    el.textContent = '⏳ ' + (h ? `${h}h${String(min).padStart(2, '0')}` : `${min}min`);
+    el.title = 'palpite trava em ' + (h ? `${h}h${String(min).padStart(2, '0')}min` : `${min} minutos`);
+  });
+}
+tickCountdown();
+setInterval(tickCountdown, 30000);
+</script>
+{% endblock %}

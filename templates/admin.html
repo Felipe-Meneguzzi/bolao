@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block title %}Admin — Bolão Copa 2026{% endblock %}
+{% block content %}
+<h1>Administração</h1>
+
+<div class="card">
+  <h2>➕ Adicionar jogo do mata-mata</h2>
+  <p class="muted">Crie os confrontos reais conforme forem definidos. Os participantes
+  passam a poder palpitar neles imediatamente.</p>
+  <form method="post" action="{{ url_for('admin_novo_jogo') }}" class="inline-form">
+    <select name="stage" required>
+      {% for k, v in ESTAGIOS.items() if k != 'grupos' %}
+        <option value="{{ k }}">{{ v }}</option>
+      {% endfor %}
+    </select>
+    <select name="team1" required>
+      <option value="">Time 1…</option>
+      {% for c, t in TEAMS.items()|sort(attribute='1.nome') %}
+        <option value="{{ c }}">{{ t.nome }} ({{ c }})</option>
+      {% endfor %}
+    </select>
+    <select name="team2" required>
+      <option value="">Time 2…</option>
+      {% for c, t in TEAMS.items()|sort(attribute='1.nome') %}
+        <option value="{{ c }}">{{ t.nome }} ({{ c }})</option>
+      {% endfor %}
+    </select>
+    <input type="datetime-local" name="kickoff" required>
+    <button type="submit">Criar jogo</button>
+  </form>
+</div>
+
+<div class="card">
+  <h2>📝 Lançar resultados</h2>
+  <p class="muted">Deixe os dois campos vazios e salve para remover um resultado.
+  {% if tem_hoje %}<a href="#hoje">↓ ir para os jogos de hoje</a>{% endif %}</p>
+  <table class="admin-jogos">
+    <thead><tr><th>Jogo</th><th>Data</th><th>Confronto</th><th>Resultado</th><th></th></tr></thead>
+    <tbody>
+    {% set ns = namespace(hoje_marcado=false) %}
+    {% for m in matches %}
+      {% set eh_hoje = m.kickoff[:10] == hoje %}
+      <tr class="{% if m.voided %}linha-anulada{% elif eh_hoje %}linha-hoje{% endif %}"
+          {% if eh_hoje and not ns.hoje_marcado %}id="hoje"{% set ns.hoje_marcado = true %}{% endif %}>
+        <td>{{ m.code }}{% if m.voided %} <span class="anulado">🚫</span>{% elif eh_hoje %} <span class="tag-hoje">hoje</span>{% endif %}</td>
+        <td>
+          <form method="post" action="{{ url_for('admin_kickoff') }}" class="placar-form">
+            <input type="hidden" name="match_id" value="{{ m.id }}">
+            <input type="datetime-local" name="kickoff" value="{{ m.kickoff }}" required>
+            <button type="submit" title="Salvar nova data/hora">📅</button>
+          </form>
+        </td>
+        <td>{{ team_label(m.team1) }} x {{ team_label(m.team2) }}</td>
+        <td>
+          <form method="post" action="{{ url_for('admin_resultado') }}" class="placar-form"
+                data-code="{{ m.code }}" onsubmit="return confirmaResultado(this)">
+            <input type="hidden" name="match_id" value="{{ m.id }}">
+            <input type="number" name="score1" min="0" max="99" value="{{ m.score1 if m.score1 is not none else '' }}">
+            x
+            <input type="number" name="score2" min="0" max="99" value="{{ m.score2 if m.score2 is not none else '' }}">
+            <button type="submit">Salvar</button>
+          </form>
+        </td>
+        <td class="acoes-jogo">
+          <form method="post" action="{{ url_for('admin_anular') }}"
+                onsubmit="return confirm('{{ 'Reativar' if m.voided else 'Anular' }} o jogo {{ m.code }}?{{ '' if m.voided else ' Ele deixa de valer pontos e palpites.' }}')">
+            <input type="hidden" name="match_id" value="{{ m.id }}">
+            <button type="submit" class="perigo">{{ 'reativar' if m.voided else 'anular' }}</button>
+          </form>
+          {% if m.stage != 'grupos' %}
+          <form method="post" action="{{ url_for('admin_excluir_jogo') }}"
+                onsubmit="return confirm('Excluir este jogo e os palpites dele?')">
+            <input type="hidden" name="match_id" value="{{ m.id }}">
+            <button type="submit" class="perigo">Excluir</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h2>👥 Participantes</h2>
+  <table>
+    <thead><tr><th>Usuário</th><th>Nome</th><th>Palpites</th><th>Pagamento</th><th></th></tr></thead>
+    <tbody>
+    {% for u in users %}
+      <tr>
+        <td>{{ u.username }}{% if u.is_admin %} <span class="muted">(admin)</span>{% endif %}</td>
+        <td>
+          <form method="post" action="{{ url_for('admin_renomear_usuario') }}" class="placar-form">
+            <input type="hidden" name="user_id" value="{{ u.id }}">
+            <input type="text" name="name" value="{{ u.name }}" maxlength="60" required class="nome-input">
+            <button type="submit" title="Salvar nome de exibição">💾</button>
+          </form>
+        </td>
+        <td>{{ u.palpites }}</td>
+        <td>
+          {% if u.paid %}<span class="badge-pago">✅ pago</span>
+          {% elif u.palpites > 0 %}<span class="badge-pendente">⏳ deve R$ {{ '%.0f'|format(VALOR_APOSTA) }}</span>
+          {% else %}<span class="muted">sem palpites</span>{% endif %}
+        </td>
+        <td class="acoes-jogo">
+          <form method="post" action="{{ url_for('admin_pagamento') }}">
+            <input type="hidden" name="user_id" value="{{ u.id }}">
+            <button type="submit" class="mini">{{ 'desmarcar pago' if u.paid else 'marcar pago' }}</button>
+          </form>
+          {% if not u.is_admin %}
+          <form method="post" action="{{ url_for('admin_excluir_usuario') }}"
+                onsubmit="return confirm('Excluir {{ u.name }} ({{ u.palpites }} palpite{{ 's' if u.palpites != 1 }})? Os palpites serão apagados — o histórico fica na auditoria.')">
+            <input type="hidden" name="user_id" value="{{ u.id }}">
+            <button type="submit" class="perigo">excluir</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+function confirmaResultado(f) {
+  const s1 = f.score1.value.trim(), s2 = f.score2.value.trim();
+  if (s1 === '' && s2 === '')
+    return confirm(`Remover o resultado do jogo ${f.dataset.code}?`);
+  return confirm(`Confirmar resultado ${s1}x${s2} para o jogo ${f.dataset.code}? ` +
+                 'Isso encerra os palpites e atualiza o placar geral.');
+}
+</script>
+{% endblock %}

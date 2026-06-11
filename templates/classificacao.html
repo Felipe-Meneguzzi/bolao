@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block title %}Placar geral — Bolão Copa 2026{% endblock %}
+{% block content %}
+<h1>Placar geral</h1>
+
+<div class="cards-row">
+  <div class="card stat"><span class="big">R$ {{ '%.2f'|format(caixa) }}</span>Caixa do bolão<br><small>{{ apostadores }} apostador{{ 'es' if apostadores != 1 }} × R$ {{ '%.0f'|format(VALOR_APOSTA) }}</small></div>
+  <div class="card stat"><span class="big">💵 R$ {{ '%.2f'|format(caixa_pago) }}</span>Caixa confirmado<br><small><span class="badge-pago">{{ pagos }} pago{{ 's' if pagos != 1 }}</span> · <span class="badge-pendente">{{ nao_pagos }} pendente{{ 's' if nao_pagos != 1 }}</span></small></div>
+  <div class="card stat"><span class="big">🥇 R$ {{ '%.2f'|format(premios[0]) }}</span>1º lugar (60%)</div>
+  <div class="card stat"><span class="big">🥈 R$ {{ '%.2f'|format(premios[1]) }}</span>2º lugar (30%)</div>
+  <div class="card stat"><span class="big">🥉 R$ {{ '%.2f'|format(premios[2]) }}</span>3º lugar (10%)</div>
+  <div class="card stat"><span class="big">{% if minha_pos %}{{ minha_pos }}º{% else %}—{% endif %}</span>Sua posição{% if not minha_pos %}<br><small>faça um palpite para entrar</small>{% endif %}</div>
+</div>
+
+<p class="muted">Pontuação calculada sobre {{ jogos_com_resultado }} jogo{{ 's' if jogos_com_resultado != 1 }} com resultado lançado.
+Placar exato = 3 pts · acertou só o resultado (vencedor/empate) = 1 pt · errou = 0.
+<strong>Desempate: quem tiver mais placares exatos 🎯 fica na frente.</strong></p>
+
+<div class="card">
+  <p class="export-link"><a href="{{ url_for('export_ranking') }}">⬇️ Exportar CSV</a></p>
+  <table class="ranking">
+    <thead><tr><th>#</th><th>Participante</th><th>Pontos</th><th>🎯 Placar exato (3 pts)</th><th>Só o resultado (1 pt)</th><th>Erros</th><th>Palpites</th><th>Pagamento</th></tr></thead>
+    <tbody>
+    {% for s in ranking %}
+      <tr class="{% if loop.index == 1 %}ouro{% elif loop.index == 2 %}prata{% elif loop.index == 3 %}bronze{% endif %} {% if s.uid == session.user_id %}voce{% endif %}">
+        <td>{{ loop.index }}º{% if loop.index == 1 %} 🥇{% elif loop.index == 2 %} 🥈{% elif loop.index == 3 %} 🥉{% endif %}</td>
+        <td><a class="link-perfil" href="{{ url_for('perfil', user_id=s.uid) }}">{{ s.name }}</a>{% if s.uid == session.user_id %} <span class="muted">(você)</span>{% endif %}</td>
+        <td><strong>{{ s.pontos }}</strong></td>
+        <td><strong>{{ s.exatos }}</strong></td>
+        <td>{{ s.vencedores }}</td>
+        <td>{{ s.erros }}</td>
+        <td>{{ s.palpites }}</td>
+        <td>{% if s.pago %}<span class="badge-pago">✅ pago</span>{% else %}<span class="badge-pendente">⏳ pendente</span>{% endif %}</td>
+      </tr>
+    {% else %}
+      <tr><td colspan="8" class="muted">Ninguém apostou ainda — seja o primeiro!</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if grafico %}
+<div class="card">
+  <h2>📈 Evolução do ranking</h2>
+  <p class="muted">Posição de cada participante a cada dia com resultado lançado.
+  A sua linha aparece mais grossa.</p>
+  <div class="grafico-wrap">
+    <svg viewBox="0 0 {{ grafico.w }} {{ grafico.h }}" class="grafico"
+         role="img" aria-label="Gráfico de evolução do ranking">
+      {% for r in grafico.rotulos_y %}
+      <line class="gridline" x1="{{ grafico.pad }}" y1="{{ r.y }}"
+            x2="{{ grafico.w - grafico.pad }}" y2="{{ r.y }}" stroke-width="1"/>
+      <text x="{{ grafico.pad - 8 }}" y="{{ r.y + 4 }}" text-anchor="end"
+            font-size="11">{{ r.txt }}</text>
+      {% endfor %}
+      {% for r in grafico.rotulos_x %}
+      <text x="{{ r.x }}" y="{{ grafico.h - 12 }}" text-anchor="middle"
+            font-size="11">{{ r.txt }}</text>
+      {% endfor %}
+      {% for l in grafico.linhas %}
+      <polyline points="{{ l.points }}" fill="none" stroke="{{ l.cor }}"
+                stroke-width="{{ 4 if l.voce else 2 }}" stroke-linejoin="round"
+                stroke-linecap="round" opacity="{{ '1' if l.voce else '.75' }}"/>
+      {% endfor %}
+    </svg>
+  </div>
+  <div class="grafico-legenda">
+    {% for l in grafico.linhas %}
+    <span class="leg-item {% if l.voce %}leg-voce{% endif %}">
+      <span class="leg-cor" style="background: {{ l.cor }}"></span>
+      {{ l.pos_final }}º {{ l.name }}{% if l.voce %} (você){% endif %}
+    </span>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

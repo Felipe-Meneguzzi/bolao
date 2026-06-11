@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Cadastro — Bolão Copa 2026{% endblock %}
+{% block content %}
+<div class="card auth">
+  <h1>Criar conta</h1>
+  <p class="muted">Ao fazer o primeiro palpite, você entra no bolão e deve
+     R$ {{ '%.2f'|format(VALOR_APOSTA) }} para o caixa. As regras completas ficam
+     disponíveis depois de entrar.</p>
+  <form method="post">
+    <label>Usuário (para login) <input name="username" required autofocus></label>
+    <label>Seu nome (aparece no placar) <input name="name" required></label>
+    <label>Senha <input name="password" type="password" required minlength="4"></label>
+    <button type="submit">Cadastrar</button>
+  </form>
+  <p class="muted">Já tem conta? <a href="{{ url_for('login') }}">Entrar</a></p>
+</div>
+{% endblock %}

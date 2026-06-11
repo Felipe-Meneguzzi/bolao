@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Calendário — Bolão Copa 2026{% endblock %}
+{% block content %}
+<h1>Calendário de jogos</h1>
+<p class="muted">Todos os jogos da Copa, dia a dia (horário de Brasília). Clique num jogo
+para ir direto ao palpite dele. <span class="tag-hoje">hoje</span> marca o dia atual.
+Cores: <span class="cal-leg cal-pendente">falta palpitar</span>
+<span class="cal-leg">já palpitei</span>
+<span class="cal-leg cal-neutro">encerrado sem palpite</span></p>
+
+{% for mes in meses %}
+<section class="card">
+  <h2>📆 {{ mes.nome }}</h2>
+  <div class="cal-wrap">
+    <table class="cal-table">
+      <thead>
+        <tr>{% for d in dias_semana %}<th>{{ d }}</th>{% endfor %}</tr>
+      </thead>
+      <tbody>
+      {% for semana in mes.semanas %}
+        <tr>
+        {% for c in semana %}
+          <td class="{% if c.fora %}cal-fora{% endif %} {% if c.data == hoje and not c.fora %}cal-hoje{% endif %}">
+            {% if not c.fora %}
+            <div class="cal-dia">{{ c.dia }}{% if c.data == hoje %} <span class="tag-hoje">hoje</span>{% endif %}</div>
+            {% for j in c.jogos %}
+              <a class="cal-jogo {% if j.voided %}cal-anulado{% elif j.palpitei %}{% elif j.locked %}cal-neutro{% else %}cal-pendente{% endif %}"
+                 href="{{ url_for('palpites') }}#match-{{ j.id }}"
+                 title="{{ TEAMS[j.team1].nome if j.team1 in TEAMS else j.team1 }} x {{ TEAMS[j.team2].nome if j.team2 in TEAMS else j.team2 }} às {{ j.kickoff[11:16] }}{% if j.voided %} (anulado){% elif j.score1 is not none %} — resultado {{ j.score1 }}x{{ j.score2 }}{% endif %}">
+                <span class="cal-hora">{{ j.kickoff[11:16] }}</span>
+                <span class="cal-time"><img class="flag-s" src="{{ url_for('static', filename='flags/' + j.team1 + '.png') }}" alt="" width="16" height="11" onerror="this.remove()">{{ j.team1 }}</span>
+                <span class="cal-x">{% if j.score1 is not none and not j.voided %}{{ j.score1 }}x{{ j.score2 }}{% else %}x{% endif %}</span>
+                <span class="cal-time"><img class="flag-s" src="{{ url_for('static', filename='flags/' + j.team2 + '.png') }}" alt="" width="16" height="11" onerror="this.remove()">{{ j.team2 }}</span>
+                {% if j.voided %}🚫{% endif %}
+              </a>
+            {% endfor %}
+            {% endif %}
+          </td>
+        {% endfor %}
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% else %}
+<p class="muted">Nenhum jogo cadastrado.</p>
+{% endfor %}
+{% endblock %}

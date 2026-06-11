@@ -1,0 +1,702 @@
+{
+ "teams": {
+  "MEX": {
+   "nome": "México",
+   "flag": "🇲🇽"
+  },
+  "RSA": {
+   "nome": "África do Sul",
+   "flag": "🇿🇦"
+  },
+  "KOR": {
+   "nome": "Coreia do Sul",
+   "flag": "🇰🇷"
+  },
+  "CZE": {
+   "nome": "Tchéquia",
+   "flag": "🇨🇿"
+  },
+  "CAN": {
+   "nome": "Canadá",
+   "flag": "🇨🇦"
+  },
+  "BIH": {
+   "nome": "Bósnia e Herzegovina",
+   "flag": "🇧🇦"
+  },
+  "QAT": {
+   "nome": "Catar",
+   "flag": "🇶🇦"
+  },
+  "SUI": {
+   "nome": "Suíça",
+   "flag": "🇨🇭"
+  },
+  "BRA": {
+   "nome": "Brasil",
+   "flag": "🇧🇷"
+  },
+  "MAR": {
+   "nome": "Marrocos",
+   "flag": "🇲🇦"
+  },
+  "HAI": {
+   "nome": "Haiti",
+   "flag": "🇭🇹"
+  },
+  "SCO": {
+   "nome": "Escócia",
+   "flag": "🏴󠁧󠁢󠁳󠁣󠁴󠁿"
+  },
+  "USA": {
+   "nome": "Estados Unidos",
+   "flag": "🇺🇸"
+  },
+  "PAR": {
+   "nome": "Paraguai",
+   "flag": "🇵🇾"
+  },
+  "AUS": {
+   "nome": "Austrália",
+   "flag": "🇦🇺"
+  },
+  "TUR": {
+   "nome": "Turquia",
+   "flag": "🇹🇷"
+  },
+  "GER": {
+   "nome": "Alemanha",
+   "flag": "🇩🇪"
+  },
+  "CUW": {
+   "nome": "Curaçao",
+   "flag": "🇨🇼"
+  },
+  "CIV": {
+   "nome": "Costa do Marfim",
+   "flag": "🇨🇮"
+  },
+  "ECU": {
+   "nome": "Equador",
+   "flag": "🇪🇨"
+  },
+  "NED": {
+   "nome": "Holanda",
+   "flag": "🇳🇱"
+  },
+  "JPN": {
+   "nome": "Japão",
+   "flag": "🇯🇵"
+  },
+  "SWE": {
+   "nome": "Suécia",
+   "flag": "🇸🇪"
+  },
+  "TUN": {
+   "nome": "Tunísia",
+   "flag": "🇹🇳"
+  },
+  "BEL": {
+   "nome": "Bélgica",
+   "flag": "🇧🇪"
+  },
+  "EGY": {
+   "nome": "Egito",
+   "flag": "🇪🇬"
+  },
+  "IRN": {
+   "nome": "Irã",
+   "flag": "🇮🇷"
+  },
+  "NZL": {
+   "nome": "Nova Zelândia",
+   "flag": "🇳🇿"
+  },
+  "ESP": {
+   "nome": "Espanha",
+   "flag": "🇪🇸"
+  },
+  "CPV": {
+   "nome": "Cabo Verde",
+   "flag": "🇨🇻"
+  },
+  "KSA": {
+   "nome": "Arábia Saudita",
+   "flag": "🇸🇦"
+  },
+  "URU": {
+   "nome": "Uruguai",
+   "flag": "🇺🇾"
+  },
+  "FRA": {
+   "nome": "França",
+   "flag": "🇫🇷"
+  },
+  "SEN": {
+   "nome": "Senegal",
+   "flag": "🇸🇳"
+  },
+  "IRQ": {
+   "nome": "Iraque",
+   "flag": "🇮🇶"
+  },
+  "NOR": {
+   "nome": "Noruega",
+   "flag": "🇳🇴"
+  },
+  "ARG": {
+   "nome": "Argentina",
+   "flag": "🇦🇷"
+  },
+  "ALG": {
+   "nome": "Argélia",
+   "flag": "🇩🇿"
+  },
+  "AUT": {
+   "nome": "Áustria",
+   "flag": "🇦🇹"
+  },
+  "JOR": {
+   "nome": "Jordânia",
+   "flag": "🇯🇴"
+  },
+  "POR": {
+   "nome": "Portugal",
+   "flag": "🇵🇹"
+  },
+  "COD": {
+   "nome": "RD Congo",
+   "flag": "🇨🇩"
+  },
+  "UZB": {
+   "nome": "Uzbequistão",
+   "flag": "🇺🇿"
+  },
+  "COL": {
+   "nome": "Colômbia",
+   "flag": "🇨🇴"
+  },
+  "ENG": {
+   "nome": "Inglaterra",
+   "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿"
+  },
+  "CRO": {
+   "nome": "Croácia",
+   "flag": "🇭🇷"
+  },
+  "GHA": {
+   "nome": "Gana",
+   "flag": "🇬🇭"
+  },
+  "PAN": {
+   "nome": "Panamá",
+   "flag": "🇵🇦"
+  }
+ },
+ "matches": [
+  {
+   "code": "A1",
+   "group": "A",
+   "team1": "MEX",
+   "team2": "RSA",
+   "kickoff_brt": "2026-06-11T16:00"
+  },
+  {
+   "code": "A2",
+   "group": "A",
+   "team1": "KOR",
+   "team2": "CZE",
+   "kickoff_brt": "2026-06-11T23:00"
+  },
+  {
+   "code": "B1",
+   "group": "B",
+   "team1": "CAN",
+   "team2": "BIH",
+   "kickoff_brt": "2026-06-12T16:00"
+  },
+  {
+   "code": "D1",
+   "group": "D",
+   "team1": "USA",
+   "team2": "PAR",
+   "kickoff_brt": "2026-06-12T22:00"
+  },
+  {
+   "code": "B2",
+   "group": "B",
+   "team1": "QAT",
+   "team2": "SUI",
+   "kickoff_brt": "2026-06-13T16:00"
+  },
+  {
+   "code": "C1",
+   "group": "C",
+   "team1": "BRA",
+   "team2": "MAR",
+   "kickoff_brt": "2026-06-13T19:00"
+  },
+  {
+   "code": "C2",
+   "group": "C",
+   "team1": "HAI",
+   "team2": "SCO",
+   "kickoff_brt": "2026-06-13T22:00"
+  },
+  {
+   "code": "D2",
+   "group": "D",
+   "team1": "AUS",
+   "team2": "TUR",
+   "kickoff_brt": "2026-06-14T01:00"
+  },
+  {
+   "code": "E1",
+   "group": "E",
+   "team1": "GER",
+   "team2": "CUW",
+   "kickoff_brt": "2026-06-14T14:00"
+  },
+  {
+   "code": "F1",
+   "group": "F",
+   "team1": "NED",
+   "team2": "JPN",
+   "kickoff_brt": "2026-06-14T17:00"
+  },
+  {
+   "code": "E2",
+   "group": "E",
+   "team1": "CIV",
+   "team2": "ECU",
+   "kickoff_brt": "2026-06-14T20:00"
+  },
+  {
+   "code": "F2",
+   "group": "F",
+   "team1": "SWE",
+   "team2": "TUN",
+   "kickoff_brt": "2026-06-14T23:00"
+  },
+  {
+   "code": "H1",
+   "group": "H",
+   "team1": "ESP",
+   "team2": "CPV",
+   "kickoff_brt": "2026-06-15T13:00"
+  },
+  {
+   "code": "G1",
+   "group": "G",
+   "team1": "BEL",
+   "team2": "EGY",
+   "kickoff_brt": "2026-06-15T16:00"
+  },
+  {
+   "code": "H2",
+   "group": "H",
+   "team1": "KSA",
+   "team2": "URU",
+   "kickoff_brt": "2026-06-15T19:00"
+  },
+  {
+   "code": "G2",
+   "group": "G",
+   "team1": "IRN",
+   "team2": "NZL",
+   "kickoff_brt": "2026-06-15T22:00"
+  },
+  {
+   "code": "I1",
+   "group": "I",
+   "team1": "FRA",
+   "team2": "SEN",
+   "kickoff_brt": "2026-06-16T16:00"
+  },
+  {
+   "code": "I2",
+   "group": "I",
+   "team1": "IRQ",
+   "team2": "NOR",
+   "kickoff_brt": "2026-06-16T19:00"
+  },
+  {
+   "code": "J1",
+   "group": "J",
+   "team1": "ARG",
+   "team2": "ALG",
+   "kickoff_brt": "2026-06-16T22:00"
+  },
+  {
+   "code": "J2",
+   "group": "J",
+   "team1": "AUT",
+   "team2": "JOR",
+   "kickoff_brt": "2026-06-17T01:00"
+  },
+  {
+   "code": "K1",
+   "group": "K",
+   "team1": "POR",
+   "team2": "COD",
+   "kickoff_brt": "2026-06-17T14:00"
+  },
+  {
+   "code": "L1",
+   "group": "L",
+   "team1": "ENG",
+   "team2": "CRO",
+   "kickoff_brt": "2026-06-17T17:00"
+  },
+  {
+   "code": "L2",
+   "group": "L",
+   "team1": "GHA",
+   "team2": "PAN",
+   "kickoff_brt": "2026-06-17T20:00"
+  },
+  {
+   "code": "K2",
+   "group": "K",
+   "team1": "UZB",
+   "team2": "COL",
+   "kickoff_brt": "2026-06-17T23:00"
+  },
+  {
+   "code": "A3",
+   "group": "A",
+   "team1": "CZE",
+   "team2": "RSA",
+   "kickoff_brt": "2026-06-18T13:00"
+  },
+  {
+   "code": "B3",
+   "group": "B",
+   "team1": "SUI",
+   "team2": "BIH",
+   "kickoff_brt": "2026-06-18T16:00"
+  },
+  {
+   "code": "B4",
+   "group": "B",
+   "team1": "CAN",
+   "team2": "QAT",
+   "kickoff_brt": "2026-06-18T19:00"
+  },
+  {
+   "code": "A4",
+   "group": "A",
+   "team1": "MEX",
+   "team2": "KOR",
+   "kickoff_brt": "2026-06-18T22:00"
+  },
+  {
+   "code": "D3",
+   "group": "D",
+   "team1": "USA",
+   "team2": "AUS",
+   "kickoff_brt": "2026-06-19T16:00"
+  },
+  {
+   "code": "C3",
+   "group": "C",
+   "team1": "SCO",
+   "team2": "MAR",
+   "kickoff_brt": "2026-06-19T19:00"
+  },
+  {
+   "code": "C4",
+   "group": "C",
+   "team1": "BRA",
+   "team2": "HAI",
+   "kickoff_brt": "2026-06-19T21:30"
+  },
+  {
+   "code": "D4",
+   "group": "D",
+   "team1": "TUR",
+   "team2": "PAR",
+   "kickoff_brt": "2026-06-20T00:00"
+  },
+  {
+   "code": "F3",
+   "group": "F",
+   "team1": "NED",
+   "team2": "SWE",
+   "kickoff_brt": "2026-06-20T14:00"
+  },
+  {
+   "code": "E3",
+   "group": "E",
+   "team1": "GER",
+   "team2": "CIV",
+   "kickoff_brt": "2026-06-20T17:00"
+  },
+  {
+   "code": "E4",
+   "group": "E",
+   "team1": "ECU",
+   "team2": "CUW",
+   "kickoff_brt": "2026-06-20T21:00"
+  },
+  {
+   "code": "F4",
+   "group": "F",
+   "team1": "TUN",
+   "team2": "JPN",
+   "kickoff_brt": "2026-06-21T01:00"
+  },
+  {
+   "code": "H3",
+   "group": "H",
+   "team1": "ESP",
+   "team2": "KSA",
+   "kickoff_brt": "2026-06-21T13:00"
+  },
+  {
+   "code": "G3",
+   "group": "G",
+   "team1": "BEL",
+   "team2": "IRN",
+   "kickoff_brt": "2026-06-21T16:00"
+  },
+  {
+   "code": "H4",
+   "group": "H",
+   "team1": "URU",
+   "team2": "CPV",
+   "kickoff_brt": "2026-06-21T19:00"
+  },
+  {
+   "code": "G4",
+   "group": "G",
+   "team1": "NZL",
+   "team2": "EGY",
+   "kickoff_brt": "2026-06-21T22:00"
+  },
+  {
+   "code": "J3",
+   "group": "J",
+   "team1": "ARG",
+   "team2": "AUT",
+   "kickoff_brt": "2026-06-22T14:00"
+  },
+  {
+   "code": "I3",
+   "group": "I",
+   "team1": "FRA",
+   "team2": "IRQ",
+   "kickoff_brt": "2026-06-22T18:00"
+  },
+  {
+   "code": "I4",
+   "group": "I",
+   "team1": "NOR",
+   "team2": "SEN",
+   "kickoff_brt": "2026-06-22T21:00"
+  },
+  {
+   "code": "J4",
+   "group": "J",
+   "team1": "JOR",
+   "team2": "ALG",
+   "kickoff_brt": "2026-06-23T00:00"
+  },
+  {
+   "code": "K3",
+   "group": "K",
+   "team1": "POR",
+   "team2": "UZB",
+   "kickoff_brt": "2026-06-23T14:00"
+  },
+  {
+   "code": "L3",
+   "group": "L",
+   "team1": "ENG",
+   "team2": "GHA",
+   "kickoff_brt": "2026-06-23T17:00"
+  },
+  {
+   "code": "L4",
+   "group": "L",
+   "team1": "PAN",
+   "team2": "CRO",
+   "kickoff_brt": "2026-06-23T20:00"
+  },
+  {
+   "code": "K4",
+   "group": "K",
+   "team1": "COL",
+   "team2": "COD",
+   "kickoff_brt": "2026-06-23T23:00"
+  },
+  {
+   "code": "B5",
+   "group": "B",
+   "team1": "SUI",
+   "team2": "CAN",
+   "kickoff_brt": "2026-06-24T16:00"
+  },
+  {
+   "code": "B6",
+   "group": "B",
+   "team1": "BIH",
+   "team2": "QAT",
+   "kickoff_brt": "2026-06-24T16:00"
+  },
+  {
+   "code": "C5",
+   "group": "C",
+   "team1": "SCO",
+   "team2": "BRA",
+   "kickoff_brt": "2026-06-24T19:00"
+  },
+  {
+   "code": "C6",
+   "group": "C",
+   "team1": "MAR",
+   "team2": "HAI",
+   "kickoff_brt": "2026-06-24T19:00"
+  },
+  {
+   "code": "A5",
+   "group": "A",
+   "team1": "CZE",
+   "team2": "MEX",
+   "kickoff_brt": "2026-06-24T22:00"
+  },
+  {
+   "code": "A6",
+   "group": "A",
+   "team1": "RSA",
+   "team2": "KOR",
+   "kickoff_brt": "2026-06-24T22:00"
+  },
+  {
+   "code": "E5",
+   "group": "E",
+   "team1": "CUW",
+   "team2": "CIV",
+   "kickoff_brt": "2026-06-25T17:00"
+  },
+  {
+   "code": "E6",
+   "group": "E",
+   "team1": "ECU",
+   "team2": "GER",
+   "kickoff_brt": "2026-06-25T17:00"
+  },
+  {
+   "code": "F5",
+   "group": "F",
+   "team1": "JPN",
+   "team2": "SWE",
+   "kickoff_brt": "2026-06-25T20:00"
+  },
+  {
+   "code": "F6",
+   "group": "F",
+   "team1": "TUN",
+   "team2": "NED",
+   "kickoff_brt": "2026-06-25T20:00"
+  },
+  {
+   "code": "D5",
+   "group": "D",
+   "team1": "TUR",
+   "team2": "USA",
+   "kickoff_brt": "2026-06-25T23:00"
+  },
+  {
+   "code": "D6",
+   "group": "D",
+   "team1": "PAR",
+   "team2": "AUS",
+   "kickoff_brt": "2026-06-25T23:00"
+  },
+  {
+   "code": "I5",
+   "group": "I",
+   "team1": "NOR",
+   "team2": "FRA",
+   "kickoff_brt": "2026-06-26T16:00"
+  },
+  {
+   "code": "I6",
+   "group": "I",
+   "team1": "SEN",
+   "team2": "IRQ",
+   "kickoff_brt": "2026-06-26T16:00"
+  },
+  {
+   "code": "H5",
+   "group": "H",
+   "team1": "CPV",
+   "team2": "KSA",
+   "kickoff_brt": "2026-06-26T21:00"
+  },
+  {
+   "code": "H6",
+   "group": "H",
+   "team1": "URU",
+   "team2": "ESP",
+   "kickoff_brt": "2026-06-26T21:00"
+  },
+  {
+   "code": "G5",
+   "group": "G",
+   "team1": "EGY",
+   "team2": "IRN",
+   "kickoff_brt": "2026-06-27T00:00"
+  },
+  {
+   "code": "G6",
+   "group": "G",
+   "team1": "NZL",
+   "team2": "BEL",
+   "kickoff_brt": "2026-06-27T00:00"
+  },
+  {
+   "code": "L5",
+   "group": "L",
+   "team1": "PAN",
+   "team2": "ENG",
+   "kickoff_brt": "2026-06-27T18:00"
+  },
+  {
+   "code": "L6",
+   "group": "L",
+   "team1": "CRO",
+   "team2": "GHA",
+   "kickoff_brt": "2026-06-27T18:00"
+  },
+  {
+   "code": "K5",
+   "group": "K",
+   "team1": "COL",
+   "team2": "POR",
+   "kickoff_brt": "2026-06-27T20:30"
+  },
+  {
+   "code": "K6",
+   "group": "K",
+   "team1": "COD",
+   "team2": "UZB",
+   "kickoff_brt": "2026-06-27T20:30"
+  },
+  {
+   "code": "J5",
+   "group": "J",
+   "team1": "ALG",
+   "team2": "AUT",
+   "kickoff_brt": "2026-06-27T23:00"
+  },
+  {
+   "code": "J6",
+   "group": "J",
+   "team1": "JOR",
+   "team2": "ARG",
+   "kickoff_brt": "2026-06-27T23:00"
+  }
+ ]
+}

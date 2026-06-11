@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Regras — Bolão Copa 2026{% endblock %}
+{% block content %}
+<h1>Regras do bolão</h1>
+
+<div class="card regras">
+  <h2>🎯 Como apostar</h2>
+  <ul>
+    <li>Crie sua conta e preencha o placar dos jogos na página <strong>Palpites</strong> — salva sozinho, pode alterar quando quiser.</li>
+    <li>Cada palpite pode ser editado <strong>até {{ LOCK_MIN }} minutos antes do jogo</strong> (horário de Brasília). Depois disso, trava — e também trava assim que o resultado é confirmado.</li>
+    <li>Os 72 jogos da fase de grupos já estão abertos. Os jogos do mata-mata (32 avos até a final) são liberados assim que os confrontos reais forem definidos — fique de olho a cada fase.</li>
+  </ul>
+
+  <h2>🧮 Pontuação</h2>
+  <ul>
+    <li><strong>Placar exato: 3 pontos.</strong> Ex.: você apostou Brasil 2x1 Marrocos e deu 2x1.</li>
+    <li><strong>Acertou o vencedor (ou o empate), mas não o placar: 1 ponto.</strong> Ex.: apostou 2x1 e deu 3x0.</li>
+    <li>Errou o resultado: 0 ponto.</li>
+    <li>No mata-mata vale o <strong>placar do tempo normal</strong> (90 min + acréscimos). Prorrogação e pênaltis não contam para a pontuação.</li>
+    <li>Jogo sem palpite = 0 ponto naquele jogo.</li>
+  </ul>
+
+  <h2>💰 Caixa e premiação</h2>
+  <ul>
+    <li>Cada participante que fizer ao menos um palpite entra no bolão e contribui com <strong>R$ {{ '%.2f'|format(VALOR_APOSTA) }}</strong> para o caixa — pagamento <strong>em dinheiro</strong>, direto com o organizador.</li>
+    <li>Caixa atual: <strong>R$ {{ '%.2f'|format(caixa) }}</strong> ({{ apostadores }} apostador{{ 'es' if apostadores != 1 }}).</li>
+    <li>Ao final da Copa, o caixa é distribuído assim:
+      <ul>
+        <li>🥇 1º lugar: <strong>60%</strong> — hoje R$ {{ '%.2f'|format(premios[0]) }}</li>
+        <li>🥈 2º lugar: <strong>30%</strong> — hoje R$ {{ '%.2f'|format(premios[1]) }}</li>
+        <li>🥉 3º lugar: <strong>10%</strong> — hoje R$ {{ '%.2f'|format(premios[2]) }}</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h2>⚖️ Desempate</h2>
+  <ul>
+    <li>1º critério: maior número de <strong>placares exatos</strong> 🎯 — quem tiver mais placares exatos fica na frente, mesmo com a mesma pontuação.</li>
+    <li>O <strong>Placar geral</strong> mostra a contagem de cada um: quantos placares exatos (3 pts), quantos acertos só do resultado (1 pt) e quantos erros. Ex.: 1 placar exato, 1 só resultado, 3 erros = 4 pontos.</li>
+    <li>Se ainda assim houver empate, os prêmios das posições empatadas são <strong>somados e divididos igualmente</strong> entre os empatados. Ex.: dois empatados em 1º dividem 60% + 30% (45% cada), e o seguinte leva os 10%.</li>
+  </ul>
+
+  <h2>📌 Gerais</h2>
+  <ul>
+    <li>O placar geral é atualizado automaticamente sempre que um resultado real é lançado.</li>
+    <li>Resultados oficiais são os da FIFA. Jogo <strong>adiado/remarcado</strong> vale normalmente na nova data e hora. Jogo <strong>anulado</strong> (caso extraordinário) não pontua e não aceita palpites.</li>
+    <li>Transparência total: todo palpite, resultado e alteração fica registrado na página <strong>Auditoria</strong>, visível para todos — com data, hora e a foto dos palpites no momento em que cada jogo é encerrado.</li>
+    <li>Casos omissos são decididos pelo organizador do bolão. 😄</li>
+  </ul>
+</div>
+{% endblock %}

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Bolão Copa 2026{% endblock %}</title>
+<script>
+// aplica o tema antes do CSS renderizar, senão pisca branco no dark
+document.documentElement.dataset.theme = localStorage.getItem('tema') ||
+  (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+</script>
+<link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ CSS_V }}">
+</head>
+<body>
+<header>
+  <div class="wrap nav">
+    <span class="logo">🏆 Bolão Copa 2026</span>
+    <div class="nav-right">
+      {% if session.user_id %}
+      <nav>
+        <a href="{{ url_for('palpites') }}">Palpites</a>
+        <a href="{{ url_for('calendario') }}">Calendário</a>
+        <a href="{{ url_for('classificacao') }}">Placar geral</a>
+        <a href="{{ url_for('regras') }}">Regras</a>
+        <a href="{{ url_for('auditoria') }}">Auditoria</a>
+        {% if session.is_admin %}<a href="{{ url_for('admin') }}">Admin</a>{% endif %}
+        <a href="{{ url_for('conta') }}">Conta</a>
+        <a class="sair" href="{{ url_for('logout') }}">Sair<span class="nav-nome"> ({{ session.name }})</span></a>
+      </nav>
+      {% endif %}
+      <button id="tema-btn" type="button" title="Alternar tema claro/escuro">🌙</button>
+    </div>
+  </div>
+</header>
+<main class="wrap">
+  {% with msgs = get_flashed_messages() %}
+    {% for msg in msgs %}
+    <div class="flash">{{ msg }}
+      <button type="button" class="flash-x" onclick="this.parentElement.remove()">✕</button>
+    </div>
+    {% endfor %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+<script>
+setTimeout(() => document.querySelectorAll('.flash').forEach(f => f.remove()), 6000);
+
+const temaBtn = document.getElementById('tema-btn');
+function syncTemaBtn() {
+  temaBtn.textContent = document.documentElement.dataset.theme === 'dark' ? '☀️' : '🌙';
+}
+temaBtn.addEventListener('click', () => {
+  const novo = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = novo;
+  localStorage.setItem('tema', novo);
+  syncTemaBtn();
+});
+syncTemaBtn();
+</script>
+</body>
+</html>
