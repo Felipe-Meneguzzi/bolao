@@ -85,25 +85,40 @@ button {
 button:hover { background: var(--verde-hover); }
 button.perigo { background: var(--vermelho); padding: 5px 10px; font-size: 13px; }
 
-/* grupos e jogos */
+/* grupos e jogos — grade de 2 rows: palpite em cima, jogo real embaixo,
+   colunas alinhadas entre as duas */
 .group-body { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start; }
 .matches { flex: 1 1 420px; }
 .match {
-  display: flex; align-items: center; gap: 6px; padding: 7px 4px;
-  border-bottom: 1px solid var(--borda-suave); font-size: 14.5px; flex-wrap: wrap;
+  display: grid;
+  /* última coluna fixa: com ou sem o botão de TV, o placar não desloca */
+  grid-template-columns: 76px minmax(105px, 1fr) max-content minmax(105px, 1fr) 70px 54px;
+  column-gap: 6px; row-gap: 1px; align-items: center;
+  padding: 7px 4px; border-bottom: 1px solid var(--borda-suave); font-size: 14.5px;
 }
 .match:last-child { border-bottom: 0; }
 .match.locked { background: var(--bg-suave); }
-.when { color: var(--muted2); font-size: 12px; width: 76px; flex-shrink: 0; }
-.team { flex: 1; min-width: 110px; }
+.when { color: var(--muted2); font-size: 12px; grid-column: 1; }
+.team { grid-column: auto; min-width: 0; }
 .team.t1 { text-align: right; }
+.placar-linha { display: flex; align-items: center; gap: 6px; }
+.botoes { display: inline-flex; gap: 2px; align-items: center; }
+.r2 { grid-row: 2; font-size: 11.5px; line-height: 1.3; white-space: nowrap; }
+.r2-estado { grid-column: 1; }
+.r2-estado:empty { display: none; }
+.r2-tempo { grid-column: 2; justify-self: end; color: var(--muted2); font-weight: 600; }
+.r2-placar { grid-column: 3; justify-self: center; font-weight: 700; }
+.r2-placar.live-placar { color: var(--vermelho); }
+.r2-pontos { grid-column: 4 / -1; justify-self: start; }
+.live-txt { color: var(--vermelho); font-weight: 700; }
+.fim-txt { color: var(--muted); font-weight: 600; }
 .match input {
   width: 44px; padding: 6px 4px; text-align: center; font-size: 15px;
   border: 1px solid var(--borda-input); border-radius: 6px;
 }
 .match input:disabled { background: var(--bg-suave); color: var(--muted); }
 .x { color: var(--muted2); }
-.status { font-size: 12px; min-width: 70px; }
+.status { font-size: 12px; }
 .status.ok { color: var(--verde); }
 .status.erro { color: var(--vermelho); }
 .real { color: var(--texto); background: var(--borda-suave); border-radius: 5px; padding: 2px 6px; }
@@ -118,7 +133,9 @@ th, td { padding: 6px 8px; text-align: left; }
 thead th { border-bottom: 2px solid var(--borda); color: var(--muted);
            font-size: 12.5px; text-transform: uppercase; }
 tbody tr { border-bottom: 1px solid var(--borda-suave); }
-.standings { flex: 0 1 330px; }
+.standings-col { flex: 0 1 330px; }
+.standings-label { font-size: 11.5px; font-weight: 700; text-transform: uppercase;
+                   letter-spacing: .5px; color: var(--muted); margin: 8px 0 3px; }
 .standings td, .standings th { padding: 5px 6px; }
 .standings tr.classif { background: var(--verde-suave); }
 
@@ -234,9 +251,30 @@ tbody tr { border-bottom: 1px solid var(--borda-suave); }
 .match { scroll-margin-top: 60px; }
 .match:target, .match.realce { background: var(--realce-bg); border-radius: 6px; }
 
-/* countdown (dentro da coluna de data, não desloca as demais colunas) */
-.when .countdown { display: block; font-size: 11px; color: var(--ambar);
-                   font-weight: 600; white-space: nowrap; }
+/* placar ao vivo (banner de jogos hoje) */
+.live-badge { color: var(--vermelho); font-weight: 700; font-size: 12px;
+              white-space: nowrap; }
+.live-badge small { color: var(--muted2); font-weight: 400; }
+.pts.parcial { opacity: .75; outline: 1px dashed currentColor; }
+.aviso-live { background: var(--vermelho-bg); border: 1px solid var(--vermelho-borda);
+              border-radius: 8px; padding: 10px 14px; margin: 12px 0;
+              font-size: 14.5px; }
+
+/* assistir ao vivo */
+.jogo-tv-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.jogo-tv-head h2 { margin: 0; }
+.btn-tv { display: inline-block; background: var(--verde); color: #fff;
+          text-decoration: none; padding: 9px 16px; border-radius: 8px;
+          font-size: 14.5px; font-weight: 600; }
+.btn-tv:hover { background: var(--verde-hover); }
+.video-titulo { font-size: 12.5px; margin-top: 6px; }
+.ver-tv { text-decoration: none; padding: 3px 5px; border-radius: 5px;
+          line-height: 1; color: var(--muted2); display: inline-flex;
+          align-items: center; }
+.ver-tv:hover { background: var(--borda-suave); color: var(--verde); }
+
+/* countdown (na row 2, coluna da data) */
+.r2-estado.countdown { color: var(--ambar); font-weight: 600; }
 .status.dica { color: var(--ambar); }
 .trava-aberta { color: var(--verde); font-weight: 600; }
 .trava-fechada { color: var(--vermelho); }
@@ -292,8 +330,10 @@ tr.linha-hoje { background: var(--hoje-bg); scroll-margin-top: 12px; }
 .admin-jogos td { font-size: 13.5px; }
 
 @media (max-width: 640px) {
-  .when { width: 100%; }
-  .team { min-width: 90px; font-size: 13.5px; }
+  .match { grid-template-columns: 58px minmax(80px, 1fr) max-content minmax(80px, 1fr) 44px 54px;
+           column-gap: 4px; }
+  .when { font-size: 10.5px; }
+  .team { font-size: 13.5px; }
   nav a { margin-left: 7px; font-size: 13px; }
   .nav-nome { display: none; }  /* "Sair" sem o nome — economiza espaço */
   .logo { font-size: 16px; }
