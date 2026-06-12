@@ -32,15 +32,20 @@ automaticamente:
 - usuário **`admin`** com senha **`admin123`** — ⚠️ **troque imediatamente**:
   faça login e use o menu **Conta → Alterar senha**.
 
-### Rodar em segundo plano
+### Rodar como serviço (recomendado em servidor)
+
+O unit file está em `deploy/bolao.service` (instruções de instalação no
+próprio arquivo). Com ele o app sobe no boot e reinicia sozinho se cair:
 
 ```bash
-nohup ./venv/bin/python app.py >> bolao.log 2>&1 &
+sudo cp deploy/bolao.service /etc/systemd/system/bolao.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now bolao
+journalctl -u bolao -f   # logs
 ```
 
-Sobrevive ao logout do SSH; logs em `bolao.log`. Para parar:
-`pkill -f "python app.py"`. (Não sobrevive a reboot — para isso, configurar
-um serviço systemd.)
+Para rodar avulso em segundo plano (sem systemd):
+`nohup ./venv/bin/python app.py >> bolao.log 2>&1 &`
 
 ### Acesso pela rede (se rodar em WSL2)
 
@@ -56,14 +61,17 @@ após reiniciar, rode o `netsh ... add` de novo.
 
 ### Deploy num servidor
 
+Primeira vez: `git clone` + venv + systemd (acima). Atualizações:
+
 ```bash
-rsync -av --exclude venv --exclude data --exclude __pycache__ --exclude bolao.log \
-  ./ usuario@servidor:~/bolao/
+cd ~/bolao
+git pull
+sudo systemctl restart bolao
 ```
 
-**Nunca** sobrescreva o `data/` do servidor — é lá que vivem os palpites reais.
-Depois do rsync, reinicie o app no servidor (migrações de banco rodam sozinhas
-na subida). O CSS tem cache-busting automático (`?v=mtime`).
+O `data/` (banco, chave de sessão) fica fora do git — os palpites reais nunca
+são tocados pelo deploy. Migrações de banco rodam sozinhas na subida e o CSS
+tem cache-busting automático (`?v=mtime`).
 
 ## Dados e backup
 
