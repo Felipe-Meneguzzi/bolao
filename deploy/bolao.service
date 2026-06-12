@@ -1,6 +1,6 @@
 # Serviço systemd do Bolão Copa 2026
 # Instalação (no servidor):
-#   sudo cp ~/bolao/deploy/bolao.service /etc/systemd/system/bolao.service
+#   sudo cp ~/bolao-copa/deploy/bolao.service /etc/systemd/system/bolao.service
 #   sudo systemctl daemon-reload
 #   sudo systemctl enable --now bolao
 [Unit]
@@ -10,8 +10,8 @@ After=network.target
 [Service]
 Type=simple
 User=fpm
-WorkingDirectory=/home/fpm/bolao
-ExecStart=/home/fpm/bolao/venv/bin/python app.py
+WorkingDirectory=/home/fpm/bolao-copa
+ExecStart=/home/fpm/bolao-copa/venv/bin/python app.py
 Restart=always
 RestartSec=3
 
