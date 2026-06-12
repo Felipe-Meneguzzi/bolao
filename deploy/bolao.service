@@ -1,0 +1,19 @@
+# Serviço systemd do Bolão Copa 2026
+# Instalação (no servidor):
+#   sudo cp ~/bolao/deploy/bolao.service /etc/systemd/system/bolao.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now bolao
+[Unit]
+Description=Bolao Copa 2026 (Flask)
+After=network.target
+
+[Service]
+Type=simple
+User=fpm
+WorkingDirectory=/home/fpm/bolao
+ExecStart=/home/fpm/bolao/venv/bin/python app.py
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
