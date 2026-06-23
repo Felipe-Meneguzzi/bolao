@@ -63,6 +63,23 @@
 {% block content %}
 <h1>Meus palpites</h1>
 
+{% if caloteiros %}
+<div class="painel-caloteiros">
+  <strong class="cal-titulo">🚨 Painel dos caloteiros</strong>
+  <p class="cal-aviso">A fase de grupos está <strong>quase acabando</strong> e o caixa do bolão
+  precisa estar fechado antes do mata-mata. Os nomes abaixo <strong>ainda não pagaram</strong>
+  a aposta de <strong>R$ {{ '%.2f'|format(VALOR_APOSTA)|replace('.', ',') }}</strong>.
+  Te mexe, caloteiro! 💸</p>
+  <ul class="cal-lista">
+    {% for c in caloteiros %}
+    <li>⏳ {{ c.name }}</li>
+    {% endfor %}
+  </ul>
+  <p class="cal-rodape">{{ caloteiros|length }} pendente{{ 's' if caloteiros|length != 1 }} —
+  pague com o admin pra sair daqui.</p>
+</div>
+{% endif %}
+
 {% if pendentes %}
 <div class="aviso-pendentes" id="aviso-pendentes">
   ⚠️ Palpites pendentes: <strong class="num-pendentes">{{ pendentes }}</strong>

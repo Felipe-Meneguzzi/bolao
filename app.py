@@ -564,9 +564,13 @@ def palpites():
         if not locked and p is None:
             pendentes += 1
 
+    # painel dos caloteiros: quem já apostou mas ainda não está marcado como pago
+    ranking, _, _ = get_ranking(db)
+    caloteiros = [s for s in ranking if s['palpites'] > 0 and not s['pago']]
+
     return render_template('palpites.html', grupos=sorted(grupos.items()),
                            mata_mata=mata_mata, jogos_hoje=jogos_hoje,
-                           pendentes=pendentes)
+                           pendentes=pendentes, caloteiros=caloteiros)
 
 
 @app.route('/api/palpite', methods=['POST'])

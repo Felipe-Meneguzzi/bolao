@@ -231,6 +231,20 @@ tbody tr { border-bottom: 1px solid var(--borda-suave); }
                    display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 #btn-proximo { padding: 5px 12px; font-size: 13.5px; }
 
+/* painel dos caloteiros — bem destacado em vermelho */
+.painel-caloteiros { background: var(--vermelho-bg); border: 2px solid var(--vermelho);
+                     border-radius: 10px; padding: 14px 16px; margin: 14px 0;
+                     box-shadow: 0 0 0 3px rgba(170, 51, 51, .12); }
+.cal-titulo { display: block; color: var(--vermelho); font-size: 19px;
+              letter-spacing: .3px; }
+.cal-aviso { margin: 6px 0 10px; font-size: 14.5px; line-height: 1.45; }
+.cal-lista { list-style: none; margin: 0; padding: 0;
+             display: flex; flex-wrap: wrap; gap: 6px 8px; }
+.cal-lista li { background: var(--card); border: 1px solid var(--vermelho-borda);
+                color: var(--vermelho); font-weight: 600; font-size: 14px;
+                border-radius: 999px; padding: 3px 12px; }
+.cal-rodape { margin: 10px 0 0; font-size: 13px; color: var(--muted); }
+
 /* aviso de jogos hoje */
 .aviso-hoje { background: var(--aviso-bg); border: 1px solid var(--aviso-borda); border-radius: 8px;
               padding: 10px 14px; margin: 12px 0; font-size: 14.5px; }
